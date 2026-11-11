@@ -76,7 +76,10 @@ export function textTexture(lines, o = {}) {
 }
 
 export function textPlane(lines, width, height, o = {}) {
-  const tex = textTexture(lines, { w: Math.min(2048, Math.round(256 * (width / height)) * 2), h: 512, ...o, font: o.font || 'bold 250px Nunito, Arial, sans-serif' });
+  const res = o.res || 1;
+  const H = Math.round(512 * res);
+  const font = (o.font || 'bold 250px Nunito, Arial, sans-serif').replace(/(\d+)px/, (m, n) => Math.round(n * res) + 'px');
+  const tex = textTexture(lines, { w: Math.min(2048, Math.round(H * (width / height))), radius: Math.round(24 * res), ...o, h: H, font });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
   return m;
 }

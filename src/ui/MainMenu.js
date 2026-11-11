@@ -1,6 +1,7 @@
 import { h } from './dom.js';
 import { openSettings } from './Settings.js';
 import { openDiary } from './Diary.js';
+import { openGradePicker } from './GradePicker.js';
 
 export class MainMenu {
   constructor(game) {
@@ -14,7 +15,7 @@ export class MainMenu {
     const save = g.save;
     const has = save.hasProgress();
     const btn = (label, cls, fn) => h('button', { class: `btn big ${cls}`, onclick: () => { g.audio.init(); g.audio.play('click'); fn(); }, onmouseenter: () => g.audio.play('hover') }, label);
-    const playBtn = btn(has ? `▶ Продолжить · день ${save.progress.day}` : '▶ Играть', 'green', () => g.startGame());
+    const playBtn = btn(has ? `▶ Продолжить · день ${save.progress.day}` : '▶ Играть', 'green', () => (save.data.gradeChosen ? g.startGame() : openGradePicker(g, () => g.startGame())));
     const items = [playBtn];
     if (has) {
       items.push(btn('🔄 Начать день заново', 'blue', () => {
@@ -28,6 +29,7 @@ export class MainMenu {
       }));
     }
     items.push(
+      btn(`🎓 Класс: ${save.data.grade} (сменить)`, 'blue', () => openGradePicker(g, () => this.show())),
       btn('🛍️ Магазин', 'yellow', () => g.shop.open(() => g.menuScene.refreshLook())),
       btn('📒 Дневник', 'white', () => openDiary(g)),
       btn('⚙️ Настройки', 'white', () => openSettings(g)),

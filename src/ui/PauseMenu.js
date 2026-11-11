@@ -1,6 +1,7 @@
 import { h } from './dom.js';
 import { openSettings } from './Settings.js';
 import { openDiary } from './Diary.js';
+import { openGradePicker } from './GradePicker.js';
 
 export class PauseMenu {
   constructor(game) { this.game = game; }
@@ -14,6 +15,7 @@ export class PauseMenu {
         h('div', { style: { fontWeight: 800, color: '#7a7799' } }, `День ${g.save.progress.day} · ${g.timeStr()}`),
         b('▶ Продолжить', 'green', () => g.togglePause(false)),
         b('📒 Дневник', 'white', () => openDiary(g)),
+        b(`🎓 Класс: ${g.save.data.grade}`, 'blue', () => openGradePicker(g)),
         b('🛍️ Магазин', 'yellow', () => g.shop.open()),
         b('⚙️ Настройки', 'white', () => openSettings(g)),
         b('🏠 Главное меню', 'red', () => g.toMainMenu())));

@@ -11,6 +11,7 @@ function markup(text) {
     .replace(/\*\*([^*]+)\*\*/g, '<span class="hl">$1</span>');
 }
 
+const L_KIND = { chem: 'химическая лаборатория', bio: 'лаборатория биологии', phys: 'лаборатория физики', it: 'компьютерный класс', art: 'мастерская художника', music: 'музыкальный класс', tech: 'мастерская', obzr: 'кабинет ОБЗР', geo: 'кабинет географии', gym: 'спортзал' };
 const GRADE_COLORS = { 5: '#2ed573', 4: '#3fa7ff', 3: '#ffa502', 2: '#ff6b6b' };
 const GRADE_WORDS = { 5: 'Отлично!', 4: 'Хорошо!', 3: 'Неплохо!', 2: 'Нужно повторить' };
 
@@ -34,7 +35,7 @@ export class LessonUI {
     speechSynthesis.speak(u);
   }
 
-  start(L, { scheduled = false, onFinish } = {}) {
+  start(L, { scheduled = false, onFinish, only = null } = {}) {
     const g = this.game;
     this.L = L;
     this.scheduled = scheduled;
@@ -43,7 +44,8 @@ export class LessonUI {
     this.phase = 'read';
     this.page = 0;
     this.seen = new Set([0]);
-    let tasks = L.practice.slice();
+    this.only = only;
+    let tasks = only ? [only] : L.practice.slice();
     if (L.practiceCount && L.practiceCount < tasks.length) {
       // случайная выборка заданий, но в исходном порядке
       const idx = tasks.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, L.practiceCount).sort((a, b) => a - b);
@@ -60,7 +62,7 @@ export class LessonUI {
     this.hintsUsed = 0;
     this.total = g.save.settings.lessonSeconds || CONFIG.lesson.realSeconds;
     this.left = this.total;
-    this.repeat = !!g.save.data.lessons[L.id];
+    this.repeat = !!g.save.data.lessons[L.id] || !!only;
     g.audio.setMood('calm');
 
     this.timerEl = h('div', { class: 'timer' }, '⏰ 30:00');
@@ -71,7 +73,7 @@ export class LessonUI {
       h('div', { class: 'panel lesson-card pop' },
         h('div', { class: 'lesson-top', style: { background: L.color || '#6c5ce7' } },
           h('div', { class: 'subj' }, L.icon),
-          h('div', { class: 't' }, h('h2', {}, `${L.subject}: ${L.title}`), h('div', {}, `${L.teacher || 'Учитель'} · кабинет ${L.room}${scheduled ? ' · по расписанию' : ' · свободная практика'}`)),
+          h('div', { class: 't' }, h('h2', {}, `${L.subject}: ${L.title}`), h('div', {}, `${L.grade} класс · ${L.teacher || 'Учитель'} · ${L.roomName || 'кабинет ' + L.room}${only ? ' · практическая работа' : scheduled ? ' · по расписанию' : ' · свободная практика'}`)),
           this.timerEl),
         this.phasesEl, this.body, this.foot));
     g.ui.root.append(this.el);
@@ -79,7 +81,7 @@ export class LessonUI {
     this.body.addEventListener('click', (e) => this.onTermClick(e));
     this.body.addEventListener('mouseover', (e) => { if (e.target.classList?.contains('term')) this.showTerm(e.target); });
     this.body.addEventListener('mouseout', (e) => { if (e.target.classList?.contains('term')) this.hideTerm(); });
-    if (!L.read || !L.read.length) this.startPractice();
+    if (only || !L.read || !L.read.length) this.startPractice();
     else this.renderRead();
     if (g.ui.tipEl) { g.ui.tipEl.remove(); g.ui.tipEl = null; }
     this.firstTime = !g.save.data.seenTips.tip_lesson;
@@ -172,7 +174,9 @@ export class LessonUI {
     this.body.innerHTML = '';
     this.answered = false;
     const type = TASK_TYPES[task.type] || TASK_TYPES.choice;
+    if (this.handler && this.handler.cleanup) this.handler.cleanup();
     const wrap = h('div', { class: 'task pop' });
+    if (type.practical) wrap.append(h('div', { class: 'practical-badge' }, `🔬 Практическая работа${L_KIND[this.L.kind] ? ' · ' + L_KIND[this.L.kind] : ''}`));
     this.body.append(wrap);
     this.feedback = h('div');
     const ctx = {
@@ -180,8 +184,12 @@ export class LessonUI {
       submit: () => this.submit(),
       speak: (t, l) => this.speak(t, l),
       canSpeak: () => this.canSpeak(),
+      sound: (n) => g.audio.play(n),
+      note: (midi) => g.audio.tone(440 * Math.pow(2, (midi - 69) / 12), 0.45, { type: 'triangle', vol: 0.2 }),
+      sport: (t) => this.sport(t),
     };
     this.handler = type.render(wrap, task, ctx) || {};
+    if (type.practical) g.achievements.unlock('lab');
     this.body.append(this.feedback);
 
     this.foot.innerHTML = '';
@@ -197,6 +205,26 @@ export class LessonUI {
       dots,
       h('div', { style: { display: 'flex', gap: '8px' } }, this.hintBtn, this.actionBtn, this.nextBtn));
     void g;
+  }
+
+  // практика в спортзале: окно урока скрывается, игрок бегает по залу
+  sport(task) {
+    const g = this.game;
+    const s = g.scene;
+    if (!s || !s.sportActivity) return Promise.resolve({ frac: 1, answer: 'зачтено' });
+    this.suspended = true;
+    this.el.style.display = 'none';
+    g.player.frozen = false;
+    g.cam.override = null;
+    g.refreshInput();
+    return s.sportActivity(task).then((res) => {
+      this.suspended = false;
+      this.el.style.display = '';
+      g.player.frozen = true;
+      g.refreshInput();
+      if (res.frac >= 1) g.achievements.unlock('athlete');
+      return res;
+    });
   }
 
   useHint(task) {
@@ -288,6 +316,7 @@ export class LessonUI {
     const totalCoins = this.coins + bonus;
     const totalXp = this.xp + 20 + grade * 5;
 
+    if (this.only) return this.finishOnly(pct, totalCoins, totalXp);
     // сохраняем результат
     const rec = g.save.data.lessons[L.id] || { best: 0, bestPct: 0, plays: 0 };
     rec.plays++;
@@ -306,8 +335,7 @@ export class LessonUI {
     if (grade === 5) A.unlock('excellent');
     if (pct === 100) A.unlock('perfect');
     const done = g.save.data.lessons;
-    if (done.math && done.russian && done.english) A.unlock('big3');
-    if (g.lessons.list.every((x) => done[x.id])) A.unlock('all_subjects');
+    if (g.lessons.forGrade(g.save.data.grade).every((x) => done[x.id] && done[x.id].best >= 3)) A.unlock('all_subjects');
     if (Object.values(done).filter((x) => x.readAll).length >= 3) A.unlock('reader');
     g.save.save();
 
@@ -335,6 +363,23 @@ export class LessonUI {
       h('button', { class: 'btn green', onclick: () => this.closeAndReturn({ grade, pct, coins: totalCoins }) }, 'Продолжить ▶'));
   }
 
+  // итог отдельной практической работы (вне урока)
+  finishOnly(pct, coins, xp) {
+    const g = this.game;
+    const x = Math.round(xp / 3);
+    g.save.addCoins(coins, 'practice');
+    g.save.addXp(x);
+    g.audio.play(pct >= 70 ? 'levelup' : 'pop');
+    this.renderPhases();
+    this.body.innerHTML = '';
+    this.body.append(h('div', { class: 'result' },
+      h('div', { class: 'grade', style: { background: pct >= 70 ? '#2ed573' : '#ffa502', fontSize: '64px' } }, pct >= 70 ? '🔬' : '🔁'),
+      h('h2', {}, pct >= 70 ? 'Практическая работа выполнена!' : 'Попробуй ещё раз!'),
+      h('div', { class: 'res-grid' }, h('div', { class: 'chip' }, `✅ ${pct}%`), h('div', { class: 'chip' }, `🪙 +${coins}`), h('div', { class: 'chip' }, `⭐ +${x} XP`))));
+    this.foot.innerHTML = '';
+    this.foot.append(h('button', { class: 'btn green', onclick: () => this.closeAndReturn({ pct }) }, 'Готово ▶'));
+  }
+
   closeAndReturn(res) {
     const cb = this.onFinish;
     this.close();
@@ -343,6 +388,8 @@ export class LessonUI {
 
   close() {
     if (this.canSpeak()) speechSynthesis.cancel();
+    if (this.handler && this.handler.cleanup) this.handler.cleanup();
+    this.suspended = false;
     this.hideTerm();
     if (this.el) this.el.remove();
     this.el = null;
@@ -355,7 +402,7 @@ export class LessonUI {
   abort() { if (this.active) this.close(); }
 
   update(dt) {
-    if (!this.active || this.phase === 'result') return;
+    if (!this.active || this.phase === 'result' || this.only) return;
     if (this.game.ui.dialog.open) return;
     this.left -= dt;
     // игровые часы идут вместе с уроком

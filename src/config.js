@@ -32,8 +32,8 @@ export const CONFIG = {
     radius: 0.32,
     height: 1.6,
   },
-  // Порядок уроков. Каждый день берутся следующие `lessonsPerDay` уроков по кругу.
-  schedule: ['math', 'russian', 'english', 'literature', 'biology', 'history', 'geography', 'informatics'],
-  lessonsPerDay: 3,
+  // Сколько уроков в учебном дне. Предметы берутся из учебного плана класса
+  // (src/lessons/curriculum.js), сначала — ещё не сданные.
+  lessonsPerDay: 4,
   startCoins: 50,
 };

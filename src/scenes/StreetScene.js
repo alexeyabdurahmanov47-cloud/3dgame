@@ -13,7 +13,7 @@ const SIGNS = [
   { x: 17, z: 66, title: 'Табличка «Знаешь ли ты?»', text: 'Одно большое дерево за день выделяет столько кислорода, сколько нужно для дыхания четырём людям!' },
   { x: -5.5, z: 60, title: 'Табличка у фонтана', text: 'Фонтаны строили ещё в Древнем Риме — по акведукам туда шла вода с гор.' },
   { x: 3, z: 80, title: 'Табличка «Птицы парка»', text: 'В нашем парке живут синицы, воробьи и дятлы. Дятел стучит по дереву до 20 раз в секунду!' },
-  { x: 3.5, z: 104, title: 'Табличка «Школа №1»', text: 'Нашей школе больше 50 лет! Здесь 3 этажа и 8 кабинетов разных предметов.' },
+  { x: 3.5, z: 104, title: 'Табличка «Школа №1»', text: 'Нашей школе больше 50 лет! Здесь 11 этажей: на каждом учится свой класс — с 1-го по 11-й. Есть лаборатории, компьютерный класс и большой спортзал.' },
 ];
 
 export class StreetScene extends BaseScene {
@@ -488,12 +488,12 @@ export class StreetScene extends BaseScene {
 
   school() {
     const g = this.game;
-    house(this, 0, 126, 44, 28, 12, '#ffd59e', '#e17055');
+    house(this, 0, 126, 44, 28, 34, '#ffd59e', '#e17055'); // 11 этажей
     this.box(0, 0, 111.8, 4, 3, 0.4, '#74b9ff', { emissive: '#1d4e7a' });
     this.box(0, 3.2, 110.8, 6, 0.2, 2.6, '#e17055');
     [-2.8, 2.8].forEach((x) => this.geo(GEO.cyl, '#ffffff', x, 1.6, 109.8, { sx: 0.15, sy: 3.2, sz: 0.15 }));
     this.box(0, 0, 110.5, 6, 0.12, 2.6, '#dfe6e9', { cast: false });
-    signText(this, ['ШКОЛА №1', 'READ & PRACTICE'], 0, 9.5, 111.85, 10, 2.4, Math.PI, { bg: '#ffffff', fg: '#6c5ce7', sub: '#e17055' });
+    signText(this, ['ШКОЛА №1 · 11 этажей', 'READ & PRACTICE'], 0, 9.5, 111.85, 10, 2.4, Math.PI, { bg: '#ffffff', fg: '#6c5ce7', sub: '#e17055' });
     // флагшток
     this.geo(GEO.cyl, '#dfe6e9', -8, 4, 108, { sx: 0.1, sy: 8, sz: 0.1 });
     this.flag = new THREE.Mesh(new THREE.BoxGeometry(2, 1.2, 0.05), mat('#6c5ce7'));
@@ -523,7 +523,8 @@ export class StreetScene extends BaseScene {
           g.quests.complete('go_school', true);
         }
         g.audio.play('door');
-        g.goTo('school', 'entrance');
+        g.save.progress.schoolFloor = 1;
+        g.goTo('school', 'entrance', '🏫 Школа · 1 этаж');
       },
     });
   }

@@ -9,13 +9,27 @@ export class QuestManager {
     this.steps = [];
   }
 
-  // Уроки на сегодня (по кругу из CONFIG.schedule)
-  dayLessons(day = this.game.save.progress.day) {
-    const all = CONFIG.schedule.filter((id) => this.game.lessons.byId[id]);
+  // Уроки на сегодня: берутся по кругу из предметов текущего класса и запоминаются на весь день
+  dayLessons() {
+    const g = this.game;
+    const prog = g.save.progress;
+    const grade = g.save.data.grade || 1;
+    if (prog.dayLessons && prog.dayGrade === grade && prog.dayLessons.every((id) => g.lessons.byId[id])) return prog.dayLessons;
+    const all = g.lessons.forGrade(grade).map((l) => l.id);
     if (!all.length) return [];
-    const res = [];
-    const start = ((day - 1) * CONFIG.lessonsPerDay) % all.length;
-    for (let i = 0; i < Math.min(CONFIG.lessonsPerDay, all.length); i++) res.push(all[(start + i) % all.length]);
+    // сначала — ещё не сданные предметы, в «перемешанном» на каждый день порядке
+    const rec = g.save.data.lessons;
+    const pending = all.filter((id) => !(rec[id] && rec[id].best >= 3));
+    let seed = prog.day * 7919 + grade * 104729;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+    const mix = (arr) => arr.map((id) => [rnd(), id]).sort((a, b) => a[0] - b[0]).map((x) => x[1]);
+    const order = [...mix(pending), ...mix(all.filter((id) => !pending.includes(id)))];
+    const res = order.slice(0, Math.min(CONFIG.lessonsPerDay, order.length));
+    // уроки в расписании идут в порядке учебного плана
+    res.sort((a, b) => all.indexOf(a) - all.indexOf(b));
+    prog.dayLessons = res;
+    prog.dayGrade = grade;
+    g.save.soon();
     return res;
   }
 
@@ -30,10 +44,10 @@ export class QuestManager {
       { id: 'ride_elevator', scene: 'elevator', target: 'panel', text: 'Нажми кнопку «1» на панели лифта', icon: '🔘' },
       { id: 'exit_building', scene: 'elevator', target: 'exitDoor', text: 'Выйди из подъезда на улицу', icon: '🌤️' },
       { id: 'go_school', scene: 'street', target: 'schoolDoor', text: 'Дойди до школы по жёлтым стрелкам', icon: '🏫' },
-      { id: 'wardrobe', scene: 'school', target: 'coatRack', text: 'Сдай куртку в гардероб', icon: '🧥' },
+      { id: 'wardrobe', scene: 'school', floor: 1, target: 'coatRack', text: 'Сдай куртку в гардероб', icon: '🧥' },
       ...lessons.map((id, i) => {
         const L = this.game.lessons.byId[id];
-        return { id: `lesson_${id}`, scene: 'school', target: `desk_${L.room}`, lesson: id, no: i + 1, text: `Урок ${i + 1}: ${L.subject} — кабинет ${L.room}`, icon: L.icon };
+        return { id: `lesson_${id}`, scene: 'school', floor: L.floor, target: `desk_${L.room}`, lesson: id, no: i + 1, text: `Урок ${i + 1}: ${L.subject} — ${L.roomName}`, icon: L.icon };
       }),
       { id: 'go_home', scene: 'street', target: 'homeDoor', text: 'Уроки окончены! Возвращайся домой', icon: '🏠' },
     ];
@@ -70,8 +84,18 @@ export class QuestManager {
     const step = this.current();
     if (!s || !step) return null;
     let p = step.scene === s.name ? s.points[step.target] : s.navPoint(step.scene);
+    if (step.scene === s.name && step.floor && s.floor && s.floor !== step.floor) p = s.points.lift;
     if (p && s.route) p = s.route(p);
     return p || null;
+  }
+
+  // подсказка «поднимись на N этаж»
+  extraSub() {
+    const s = this.game.scene;
+    const step = this.current();
+    if (!s || !step || step.scene !== 'school' || !step.floor || s.name !== 'school') return '';
+    if (s.floor === step.floor) return '';
+    return `${step.floor > s.floor ? '⬆ Поднимись' : '⬇ Спустись'} на ${step.floor} этаж (лифт или лестница)`;
   }
 
   refresh() {

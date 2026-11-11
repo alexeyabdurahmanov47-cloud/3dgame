@@ -11,6 +11,8 @@ export function defaultSave() {
     level: 1,
     owned: ['skin_uniform', 'bp_classic'],
     equipped: { skin: 'skin_uniform', glasses: null, hat: null, backpack: 'bp_classic', watch: null, badge: null },
+    grade: 1, // текущий класс (= этаж школы)
+    gradeChosen: false,
     lessons: {}, // id -> { best, bestPct, plays, readAll }
     achievements: {}, // id -> timestamp
     stats: { correct: 0, wrong: 0, flowers: 0, coinsPicked: 0, lessons: 0, maxCombo: 0, pets: 0, signs: 0, kicks: 0 },
@@ -40,6 +42,8 @@ export function newDayProgress(day) {
     lessonNo: 0,
     flags: {}, // dressed, backpack, breakfast...
     picked: {}, // монеты/цветы, собранные сегодня
+    schoolFloor: 1,
+    dayLessons: null,
   };
 }
 

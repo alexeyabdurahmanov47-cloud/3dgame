@@ -1,4 +1,5 @@
 import { h, shuffle, esc } from '../ui/dom.js';
+import { PRACTICALS } from './practicals.js';
 
 // Типы заданий PRACTICE. Каждый тип: render(el, task, ctx) → { check(): result, auto?: boolean }
 // result: { frac: 0..1 (доля правильного), answer: 'правильный ответ для показа' }
@@ -170,9 +171,18 @@ export const TASK_TYPES = {
       question(el, task, 'Реши примеры');
       let ex = task.examples;
       if (!ex) {
-        const { ops = ['+'], min = 1, max = 20, count = 3 } = task.gen || {};
+        const { ops = ['+'], min = 1, max = 20, count = 3, kind } = task.gen || {};
         const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
         ex = Array.from({ length: count }, () => {
+          if (kind === 'eq') { // линейное уравнение ax + b = c
+            const x = r(min, max), a = r(2, 9), b = r(1, 20);
+            return [`${a}x + ${b} = ${a * x + b}, x`, x];
+          }
+          if (kind === 'pow') { const a = r(min, max); return [`${a}²`, a * a]; }
+          if (kind === 'neg') { const a = r(-max, max), b = r(-max, max); const op = Math.random() < 0.5 ? '+' : '−'; return [`(${a}) ${op} (${b})`, op === '+' ? a + b : a - b]; }
+          if (kind === 'dec') { const a = r(min * 10, max * 10) / 10, b = r(min * 10, max * 10) / 10; return [`${String(a).replace('.', ',')} + ${String(b).replace('.', ',')}`, Math.round((a + b) * 10) / 10]; }
+          if (kind === 'sqrt') { const a = r(min, max); return [`√${a * a}`, a]; }
+          if (kind === 'percent') { const p = [10, 20, 25, 50][r(0, 3)], n = r(2, 20) * 20; return [`${p}% от ${n}`, (n * p) / 100]; }
           const op = ops[Math.floor(Math.random() * ops.length)];
           let a = r(min, max), b = r(min, max);
           if (op === '-') { if (b > a) [a, b] = [b, a]; return [`${a} − ${b}`, a - b]; }
@@ -194,7 +204,7 @@ export const TASK_TYPES = {
         check() {
           let good = 0;
           rows.forEach((r) => {
-            const ok = norm(r.inp.value).replace(',', '.') === norm(String(r.a));
+            const ok = Math.abs(parseFloat(String(r.inp.value).replace(',', '.').replace('−', '-')) - r.a) < 1e-6;
             if (ok) good++;
             r.inp.classList.add(ok ? 'right' : 'wrong');
             r.inp.disabled = true;
@@ -261,4 +271,5 @@ export const TASK_TYPES = {
       return { auto: true };
     },
   },
+  ...PRACTICALS,
 };

@@ -123,7 +123,7 @@ export class Game {
   }
 
   refreshInput() {
-    const en = this.state === 'play' && !this.paused && !this.ui.hasModal() && !this.ui.dialog.open && !this.lesson.active && !this.cutscene;
+    const en = this.state === 'play' && !this.paused && !this.ui.hasModal() && !this.ui.dialog.open && !(this.lesson.active && !this.lesson.suspended) && !this.cutscene;
     this.input.enabled = en;
     this.input.wantLock = en;
     if (!en) this.input.unlock();
@@ -248,14 +248,16 @@ export class Game {
     const prog = this.save.progress;
     const lessons = this.quests.dayLessons();
     const grades = lessons.map((id) => `${this.lessons.byId[id].icon} ${this.lessons.byId[id].subject}: <b>${this.save.data.lessons[id]?.last ?? '—'}</b>`).join('<br>');
+    const pr = this.gradeProgress();
     this.achievements.unlock('day1');
     this.ui.confetti();
     this.audio.play('levelup');
     this.ui.dialog.show([
       { name: 'Мама', avatar: '👩', text: `Ты вернулся! Как прошёл день №${prog.day}? Я горжусь тобой!` },
-      { name: 'Сова Соня', avatar: '🦉', text: `Итоги дня: ${grades.replace(/<br>/g, ', ').replace(/<\/?b>/g, '')}. Награда за день: 30 монет!` },
+      { name: 'Сова Соня', avatar: '🦉', text: `Итоги дня: ${grades.replace(/<br>/g, ', ').replace(/<\/?b>/g, '')}. Награда за день: 30 монет! Сдано предметов ${this.save.data.grade} класса: ${pr.passed} из ${pr.total}.` },
     ], () => {
       this.save.addCoins(30, 'day');
+      if (pr.ok) this.promote();
       this.save.data.progress = newDayProgress(prog.day + 1);
       this.save.save();
       this.quests.build();
@@ -263,6 +265,33 @@ export class Game {
         this.ui.dialog.show([{ name: 'Мама', avatar: '👩', text: 'Новый день — новые знания! Собирайся в школу!' }]);
       });
     });
+  }
+
+  // сколько предметов текущего класса сдано (оценка 3 и выше)
+  gradeProgress() {
+    const all = this.lessons.forGrade(this.save.data.grade);
+    const rec = this.save.data.lessons;
+    const passed = all.filter((L) => rec[L.id] && rec[L.id].best >= 3).length;
+    return { passed, total: all.length, ok: all.length > 0 && passed === all.length };
+  }
+
+  // перевод в следующий класс
+  promote() {
+    const d = this.save.data;
+    const from = d.grade;
+    this.ui.confetti(4000);
+    this.audio.play('achievement');
+    if (from >= 11) {
+      this.achievements.unlock('graduate');
+      this.save.addCoins(500, 'graduate');
+      this.ui.dialog.show([{ name: 'Директор', avatar: '👨‍💼', text: '🎓 Поздравляю! Ты окончил школу! Вот твой аттестат и 500 монет. Можешь выбрать любой класс в меню и повторить программу.' }]);
+      return;
+    }
+    d.grade = from + 1;
+    this.achievements.unlock('promoted');
+    this.save.addCoins(100, 'promotion');
+    this.save.save();
+    this.ui.dialog.show([{ name: 'Директор', avatar: '👨‍💼', text: `🏆 Похвальная грамота! Ты сдал все предметы ${from} класса и переведён в ${d.grade} класс! Теперь твои уроки — на ${d.grade} этаже. +100 монет!` }]);
   }
 
   // ---------- игровой цикл ----------
@@ -288,6 +317,7 @@ export class Game {
       this.updateInteraction();
       this.lesson.update(dt);
     }
+    this.hud._extraSub = this.quests.extraSub();
     this.cam.update(dt, this.player.pos, this.input.consumeLook(), s.world, this.save.settings);
     this.fx.update(dt);
     const target = this.state === 'play' ? this.quests.target() : null;
@@ -299,7 +329,7 @@ export class Game {
 
   updateInteraction() {
     const s = this.scene;
-    if (!this.input.enabled) { this.hud.setPrompt(null); return; }
+    if (!this.input.enabled || this.lesson.active) { this.hud.setPrompt(null); return; }
     const p = this.player.pos;
     let best = null, bd = Infinity;
     for (const it of s.interactables) {
