@@ -1,0 +1,7 @@
+# Настройки сборки для Netlify
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
