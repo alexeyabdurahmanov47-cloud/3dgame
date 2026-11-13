@@ -19,12 +19,16 @@ export class Input {
       if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
     });
     addEventListener('keyup', (e) => this.keys.delete(e.code));
-    addEventListener('blur', () => this.keys.clear());
+    addEventListener('blur', () => { this.keys.clear(); this.dragging = this.rightDrag = false; });
 
+    // Правая кнопка мыши: зажми и двигай мышь — камера поворачивается (курсор не захватывается).
+    // Левая кнопка: клик захватывает курсор (как в шутерах), Esc — отпустить.
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
     canvas.addEventListener('mousedown', (e) => {
       if (!this.enabled) return;
       this.dragging = true;
-      if (!this.isTouch && this.wantLock && !this.locked && canvas.requestPointerLock) {
+      if (e.button === 2) { this.rightDrag = true; canvas.style.cursor = 'grabbing'; }
+      else if (!this.isTouch && this.wantLock && !this.locked && canvas.requestPointerLock) {
         try {
           const p = canvas.requestPointerLock();
           if (p && p.catch) p.catch(() => {});
@@ -32,7 +36,10 @@ export class Input {
       }
       e.preventDefault();
     });
-    addEventListener('mouseup', () => (this.dragging = false));
+    addEventListener('mouseup', (e) => {
+      if (e.button === 2) { this.rightDrag = false; canvas.style.cursor = ''; }
+      if (!e.buttons) this.dragging = false;
+    });
     addEventListener('mousemove', (e) => {
       if (!this.enabled) return;
       if (this.locked || this.dragging) {
