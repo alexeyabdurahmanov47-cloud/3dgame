@@ -18,6 +18,7 @@ export function openGradePicker(game, onPick) {
   }
   const pick = (g) => {
     const changed = d.grade !== g;
+    if (changed || !d.gradeChosen) game.save.log('grade', `Выбрал ${g} класс`);
     d.grade = g;
     d.gradeChosen = true;
     if (changed) {

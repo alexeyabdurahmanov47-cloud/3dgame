@@ -11,6 +11,10 @@ export function defaultSave() {
     level: 1,
     owned: ['skin_uniform', 'bp_classic'],
     equipped: { skin: 'skin_uniform', glasses: null, hat: null, backpack: 'bp_classic', watch: null, badge: null },
+    log: [], // журнал действий игрока (для раздела «Информация»)
+    playSeconds: 0, // сколько времени проведено в игре
+    totals: { earned: 0, spent: 0 },
+    firstPlayed: null,
     grade: 1, // текущий класс (= этаж школы)
     gradeChosen: false,
     lessons: {}, // id -> { best, bestPct, plays, readAll }
@@ -101,8 +105,19 @@ export class SaveManager {
   get settings() { return this.data.settings; }
   get progress() { return this.data.progress; }
 
+  // Запись в журнал действий: type — категория, text — что произошло, extra — подробности
+  log(type, text, extra = {}) {
+    const d = this.data;
+    if (!d.firstPlayed) d.firstPlayed = Date.now();
+    d.log.push({ t: Date.now(), type, text, day: d.progress.day, grade: d.grade, ...extra });
+    if (d.log.length > 2000) d.log.splice(0, d.log.length - 2000);
+    bus.emit('log');
+    this.soon();
+  }
+
   addCoins(n, reason = '') {
     if (!n) return;
+    if (n > 0) this.data.totals.earned += Math.round(n);
     this.data.coins = Math.max(0, this.data.coins + Math.round(n));
     bus.emit('coins', this.data.coins, Math.round(n), reason);
     this.soon();
@@ -111,6 +126,7 @@ export class SaveManager {
   spend(n) {
     if (this.data.coins < n) return false;
     this.data.coins -= n;
+    this.data.totals.spent += n;
     bus.emit('coins', this.data.coins, -n, 'spend');
     this.soon();
     return true;

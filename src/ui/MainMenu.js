@@ -2,6 +2,7 @@ import { h } from './dom.js';
 import { openSettings } from './Settings.js';
 import { openDiary } from './Diary.js';
 import { openGradePicker } from './GradePicker.js';
+import { openAdmin } from './AdminPanel.js';
 
 export class MainMenu {
   constructor(game) {
@@ -32,6 +33,7 @@ export class MainMenu {
       btn(`🎓 Класс: ${save.data.grade} (сменить)`, 'blue', () => openGradePicker(g, () => this.show())),
       btn('🛍️ Магазин', 'yellow', () => g.shop.open(() => g.menuScene.refreshLook())),
       btn('📒 Дневник', 'white', () => openDiary(g)),
+      btn('📊 Информация', 'white', () => openAdmin(g)),
       btn('⚙️ Настройки', 'white', () => openSettings(g)),
       btn('🚪 Выход', 'red', () => this.exit()),
     );

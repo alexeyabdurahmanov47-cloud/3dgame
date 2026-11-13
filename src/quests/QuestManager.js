@@ -66,6 +66,8 @@ export class QuestManager {
     if (this.isDone(id) || !this.steps.find((s) => s.id === id)) return false;
     const prog = this.game.save.progress;
     prog.done.push(id);
+    const st = this.steps.find((s) => s.id === id);
+    if (st && !st.lesson) this.game.save.log('quest', `Выполнил задание: ${st.text}`);
     this.game.save.addXp(5);
     this.game.save.soon();
     if (!silent) {

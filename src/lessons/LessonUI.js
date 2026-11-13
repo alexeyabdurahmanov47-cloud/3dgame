@@ -64,6 +64,8 @@ export class LessonUI {
     this.left = this.total;
     this.repeat = !!g.save.data.lessons[L.id] || !!only;
     g.audio.setMood('calm');
+    this.startedAt = Date.now();
+    g.save.log(only ? 'practice' : 'lesson', only ? `Начал практическую работу: ${L.subject} (${L.grade} кл.)` : `Начал урок «${L.subject}» (${L.grade} кл.): ${L.title}`, { subject: L.subject, cls: L.grade, lessonId: L.id, phase: 'start' });
 
     this.timerEl = h('div', { class: 'timer' }, '⏰ 30:00');
     this.phasesEl = h('div', { class: 'phases' });
@@ -251,6 +253,7 @@ export class LessonUI {
     const task = this.tasks[this.ti];
     const R = CONFIG.rewards;
     this.results[this.ti] = res;
+    g.save.log('answer', `${res.frac >= 1 ? 'Верно' : res.frac > 0 ? 'Частично верно' : 'Ошибка'}: ${String(task.q || task.type).slice(0, 90)}`, { subject: this.L.subject, cls: this.L.grade, ok: res.frac >= 1, frac: res.frac, taskType: task.type });
     this.score += res.frac;
     const perfect = res.frac >= 1;
     let coins = 0;
@@ -326,6 +329,10 @@ export class LessonUI {
     rec.readAll = rec.readAll || readAll;
     g.save.data.lessons[L.id] = rec;
     g.save.stat('lessons');
+    g.save.log('lesson', `Завершил урок «${L.subject}» (${L.grade} кл.): оценка ${grade}, ${pct}% верно`, {
+      subject: L.subject, cls: L.grade, lessonId: L.id, phase: 'end', mark: grade, pct, coins: totalCoins,
+      secs: Math.round((Date.now() - this.startedAt) / 1000), scheduled: this.scheduled, timeUp,
+    });
     g.save.addCoins(totalCoins, 'lesson');
     g.save.addXp(totalXp);
 
@@ -366,6 +373,7 @@ export class LessonUI {
   // итог отдельной практической работы (вне урока)
   finishOnly(pct, coins, xp) {
     const g = this.game;
+    g.save.log('practice', `Выполнил практическую работу: ${this.L.subject} (${this.L.grade} кл.), ${pct}%`, { subject: this.L.subject, cls: this.L.grade, pct, phase: 'end' });
     const x = Math.round(xp / 3);
     g.save.addCoins(coins, 'practice');
     g.save.addXp(x);

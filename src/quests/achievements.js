@@ -57,6 +57,7 @@ export class Achievements {
     const a = ACHIEVEMENTS.find((x) => x.id === id);
     if (!a) return false;
     this.save.data.achievements[id] = Date.now();
+    this.save.log('achievement', `Получил достижение «${a.name}»`, { icon: a.icon });
     this.save.soon();
     // откладываем, чтобы не наложилось на другие звуки
     setTimeout(() => {

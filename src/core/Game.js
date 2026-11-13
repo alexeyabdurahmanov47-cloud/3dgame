@@ -90,7 +90,9 @@ export class Game {
     setInterval(() => { if (this.state === 'play') this.save.save(); }, 15000);
     addEventListener('beforeunload', () => this.save.save());
 
+    bus.on('star', (n) => this.save.log('star', `Нашёл звезду знаний (${n} из 10)`));
     bus.on('levelup', (lvl) => {
+      this.save.log('level', `Достиг ${lvl} уровня`);
       this.audio.play('levelup');
       this.ui.toast(`🚀 <b>Новый уровень: ${lvl}!</b> +20 🪙`, 'lvl', 3500);
       this.save.addCoins(20, 'level');
@@ -163,6 +165,7 @@ export class Game {
 
   // ---------- игра ----------
   async startGame() {
+    this.save.log('session', `Начал игру: день ${this.save.progress.day}, ${this.save.data.grade} класс`);
     this.audio.init();
     this.mainMenu.hide();
     this.quests.build();
@@ -213,6 +216,7 @@ export class Game {
     const S = SCENES[name];
     const s = new S(this);
     this.scene = s;
+    this.save.log('move', `Перешёл в локацию: ${s.title}`, { place: s.title });
     this.applyLook();
     s.build();
     s.finalize();
@@ -246,6 +250,7 @@ export class Game {
   // Конец дня: итоги и новый день
   endDay() {
     const prog = this.save.progress;
+    this.save.log('day', `Завершил учебный день ${prog.day}`);
     const lessons = this.quests.dayLessons();
     const grades = lessons.map((id) => `${this.lessons.byId[id].icon} ${this.lessons.byId[id].subject}: <b>${this.save.data.lessons[id]?.last ?? '—'}</b>`).join('<br>');
     const pr = this.gradeProgress();
@@ -288,6 +293,7 @@ export class Game {
       return;
     }
     d.grade = from + 1;
+    this.save.log('grade', `Переведён из ${from} в ${d.grade} класс`);
     this.achievements.unlock('promoted');
     this.save.addCoins(100, 'promotion');
     this.save.save();
@@ -312,6 +318,7 @@ export class Game {
     const prog = this.save.progress;
     if (this.state === 'play' && !this.paused) {
       if (!this.lesson.active) prog.clock += dt / CONFIG.clock.realSecondsPerGameMinute;
+      this.save.data.playSeconds += dt;
       this.player.update(dt, this.input, this.cam.yaw, s.world);
       s.update(dt);
       this.updateInteraction();
@@ -342,6 +349,8 @@ export class Game {
     this.hud.setPrompt(best ? (typeof best.prompt === 'function' ? best.prompt() : best.prompt) : null);
     if (best && this.input.pressed('KeyE')) {
       this.audio.play('click');
+      const what = typeof best.prompt === 'function' ? best.prompt() : best.prompt;
+      this.save.log('action', what, { place: this.scene.title });
       best.action();
     }
   }

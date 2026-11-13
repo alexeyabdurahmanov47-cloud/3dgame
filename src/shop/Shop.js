@@ -104,6 +104,7 @@ export class Shop {
     const g = this.game;
     if (!g.save.spend(it.price)) return;
     g.save.data.owned.push(it.id);
+    g.save.log('shop', `Купил «${it.name}» за ${it.price} монет`, { price: it.price, item: it.id, icon: it.icon });
     g.audio.play('buy');
     g.ui.toast(`🛍️ Куплено: <b>${it.name}</b>!`);
     g.achievements.unlock('fashion');
@@ -113,6 +114,7 @@ export class Shop {
   equip(it, silent) {
     const g = this.game;
     g.save.data.equipped[it.slot] = it.id;
+    if (!silent) g.save.log('equip', `Надел «${it.name}»`, { icon: it.icon });
     g.save.save();
     if (!silent) g.audio.play('pop');
     this.render();
@@ -120,7 +122,9 @@ export class Shop {
 
   unequip(slot) {
     const g = this.game;
+    const was = itemById(g.save.data.equipped[slot]);
     g.save.data.equipped[slot] = null;
+    if (was) g.save.log('equip', `Снял «${was.name}»`, { icon: was.icon });
     g.save.save();
     g.audio.play('pop');
     this.render();
