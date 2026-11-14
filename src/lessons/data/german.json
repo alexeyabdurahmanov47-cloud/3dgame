@@ -4,40 +4,259 @@
     "7": {
       "title": "Hallo! Знакомство",
       "read": [
-        { "title": "Begrüßung", "pic": "👋", "text": ["[[Hallo!|Привет!]] [[Guten Tag!|Добрый день!]] [[Tschüs!|Пока!]] [[Danke!|Спасибо!]]", "Представься: [[Ich heiße Anna.|Меня зовут Анна.]] [[Wie heißt du?|Как тебя зовут?]]"] },
-        { "title": "Zahlen 1–5", "pic": "🔢", "text": ["**eins** (1), **zwei** (2), **drei** (3), **vier** (4), **fünf** (5).", "Буквы **ü, ö, ä** — это «умлауты»."] }
+        {
+          "title": "Begrüßung",
+          "pic": "👋",
+          "text": [
+            "[[Hallo!|Привет!]] [[Guten Tag!|Добрый день!]] [[Tschüs!|Пока!]] [[Danke!|Спасибо!]]",
+            "Представься: [[Ich heiße Anna.|Меня зовут Анна.]] [[Wie heißt du?|Как тебя зовут?]]"
+          ]
+        },
+        {
+          "title": "Zahlen 1–5",
+          "pic": "🔢",
+          "text": [
+            "**eins** (1), **zwei** (2), **drei** (3), **vier** (4), **fünf** (5).",
+            "Буквы **ü, ö, ä** — это «умлауты»."
+          ]
+        },
+        {
+          "title": "Das Alphabet",
+          "pic": "🔤",
+          "text": [
+            "В немецком алфавите **26 букв** + **ä, ö, ü** и **ß** (эсцет, читается [с]).",
+            "**ei** читается [ай]: drei — [драй], **ie** — [и:]: vier — [фи:р]."
+          ]
+        },
+        {
+          "title": "Wie geht's?",
+          "pic": "🙂",
+          "text": [
+            "**Wie geht es dir?** — Как дела? **Gut, danke!** — Хорошо, спасибо! **Es geht.** — Нормально.",
+            "**Woher kommst du?** — Откуда ты? **Ich komme aus Russland.**"
+          ]
+        }
       ],
       "practice": [
-        { "type": "match", "q": "Соедини", "pairs": [["Hallo", "привет"], ["Danke", "спасибо"], ["Tschüs", "пока"], ["Guten Tag", "добрый день"]] },
-        { "type": "choice", "q": "Как по-немецки «три»?", "options": ["drei", "zwei", "vier"], "answer": "drei" },
-        { "type": "order", "q": "Собери: «Меня зовут Анна»", "items": ["Ich", "heiße", "Anna"] },
-        { "type": "dictation", "q": "Послушай и запиши", "words": ["hallo", "danke"], "lang": "de-DE" }
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "Hallo",
+              "привет"
+            ],
+            [
+              "Danke",
+              "спасибо"
+            ],
+            [
+              "Tschüs",
+              "пока"
+            ],
+            [
+              "Guten Tag",
+              "добрый день"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "Как по-немецки «три»?",
+          "options": [
+            "drei",
+            "zwei",
+            "vier"
+          ],
+          "answer": "drei"
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Меня зовут Анна»",
+          "items": [
+            "Ich",
+            "heiße",
+            "Anna"
+          ]
+        },
+        {
+          "type": "dictation",
+          "q": "Послушай и запиши",
+          "words": [
+            "hallo",
+            "danke"
+          ],
+          "lang": "de-DE"
+        }
       ]
     },
     "8": {
       "title": "Meine Familie — Моя семья",
       "read": [
-        { "title": "Familie", "pic": "👨‍👩‍👧", "text": ["[[die Mutter|мама]], [[der Vater|папа]], [[die Schwester|сестра]], [[der Bruder|брат]], [[die Oma|бабушка]], [[der Opa|дедушка]].", "У существительных есть артикли: **der** (м.р.), **die** (ж.р.), **das** (ср.р.)."] },
-        { "title": "Farben", "pic": "🎨", "text": ["**rot** — красный, **blau** — синий, **grün** — зелёный, **gelb** — жёлтый, **schwarz** — чёрный, **weiß** — белый."] }
+        {
+          "title": "Familie",
+          "pic": "👨‍👩‍👧",
+          "text": [
+            "[[die Mutter|мама]], [[der Vater|папа]], [[die Schwester|сестра]], [[der Bruder|брат]], [[die Oma|бабушка]], [[der Opa|дедушка]].",
+            "У существительных есть артикли: **der** (м.р.), **die** (ж.р.), **das** (ср.р.)."
+          ]
+        },
+        {
+          "title": "Farben",
+          "pic": "🎨",
+          "text": [
+            "**rot** — красный, **blau** — синий, **grün** — зелёный, **gelb** — жёлтый, **schwarz** — чёрный, **weiß** — белый."
+          ]
+        },
+        {
+          "title": "Haustiere",
+          "pic": "🐱",
+          "text": [
+            "[[der Hund|собака]], [[die Katze|кошка]], [[der Vogel|птица]], [[das Pferd|лошадь]].",
+            "**Ich habe einen Hund.** — У меня есть собака."
+          ]
+        },
+        {
+          "title": "Verben: sein und haben",
+          "pic": "📘",
+          "text": [
+            "**sein** (быть): ich bin, du bist, er ist. **haben** (иметь): ich habe, du hast, er hat.",
+            "**Ich bin 13 Jahre alt.** — Мне 13 лет."
+          ]
+        }
       ],
       "practice": [
-        { "type": "match", "q": "Соедини", "pairs": [["die Mutter", "мама"], ["der Vater", "папа"], ["der Bruder", "брат"], ["die Schwester", "сестра"]] },
-        { "type": "choice", "q": "Как по-немецки «красный»?", "big": "🔴", "options": ["rot", "blau", "grün"], "answer": "rot" },
-        { "type": "choice", "q": "Артикль мужского рода —", "options": ["der", "die", "das"], "answer": "der" },
-        { "type": "truefalse", "q": "«gelb» значит «жёлтый»", "answer": true }
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "die Mutter",
+              "мама"
+            ],
+            [
+              "der Vater",
+              "папа"
+            ],
+            [
+              "der Bruder",
+              "брат"
+            ],
+            [
+              "die Schwester",
+              "сестра"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "Как по-немецки «красный»?",
+          "big": "🔴",
+          "options": [
+            "rot",
+            "blau",
+            "grün"
+          ],
+          "answer": "rot"
+        },
+        {
+          "type": "choice",
+          "q": "Артикль мужского рода —",
+          "options": [
+            "der",
+            "die",
+            "das"
+          ],
+          "answer": "der"
+        },
+        {
+          "type": "truefalse",
+          "q": "«gelb» значит «жёлтый»",
+          "answer": true
+        }
       ]
     },
     "9": {
       "title": "Die Schule — Школа",
       "read": [
-        { "title": "Schulfächer", "pic": "🏫", "text": ["[[Mathe|математика]], [[Deutsch|немецкий язык]], [[Englisch|английский язык]], [[Sport|физкультура]], [[Kunst|изобразительное искусство]].", "**Mein Lieblingsfach ist Mathe.** — Мой любимый предмет — математика."] },
-        { "title": "Wochentage", "pic": "📅", "text": ["**Montag** (понедельник), **Dienstag**, **Mittwoch**, **Donnerstag**, **Freitag**, **Samstag**, **Sonntag** (воскресенье)."] }
+        {
+          "title": "Schulfächer",
+          "pic": "🏫",
+          "text": [
+            "[[Mathe|математика]], [[Deutsch|немецкий язык]], [[Englisch|английский язык]], [[Sport|физкультура]], [[Kunst|изобразительное искусство]].",
+            "**Mein Lieblingsfach ist Mathe.** — Мой любимый предмет — математика."
+          ]
+        },
+        {
+          "title": "Wochentage",
+          "pic": "📅",
+          "text": [
+            "**Montag** (понедельник), **Dienstag**, **Mittwoch**, **Donnerstag**, **Freitag**, **Samstag**, **Sonntag** (воскресенье)."
+          ]
+        },
+        {
+          "title": "Uhrzeit",
+          "pic": "🕒",
+          "text": [
+            "**Wie spät ist es?** — Который час? **Es ist acht Uhr.** — Восемь часов.",
+            "**halb neun** — половина девятого (буквально «половина до девяти»)!"
+          ]
+        },
+        {
+          "title": "Mein Tag",
+          "pic": "🌅",
+          "text": [
+            "**Ich stehe um 7 Uhr auf.** — Я встаю в 7. **Ich gehe in die Schule.** — Я иду в школу.",
+            "В немецком глагол стоит **на втором месте** в предложении."
+          ]
+        }
       ],
       "practice": [
-        { "type": "match", "q": "Соедини", "pairs": [["Mathe", "математика"], ["Sport", "физкультура"], ["Kunst", "ИЗО"]] },
-        { "type": "choice", "q": "«Montag» — это", "options": ["понедельник", "пятница", "воскресенье"], "answer": "понедельник" },
-        { "type": "order", "q": "Расставь дни по порядку", "items": ["Montag", "Dienstag", "Mittwoch", "Donnerstag"] },
-        { "type": "input", "q": "Переведи «Sonntag»", "answer": ["воскресенье"] }
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "Mathe",
+              "математика"
+            ],
+            [
+              "Sport",
+              "физкультура"
+            ],
+            [
+              "Kunst",
+              "ИЗО"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "«Montag» — это",
+          "options": [
+            "понедельник",
+            "пятница",
+            "воскресенье"
+          ],
+          "answer": "понедельник"
+        },
+        {
+          "type": "order",
+          "q": "Расставь дни по порядку",
+          "items": [
+            "Montag",
+            "Dienstag",
+            "Mittwoch",
+            "Donnerstag"
+          ]
+        },
+        {
+          "type": "input",
+          "q": "Переведи «Sonntag»",
+          "answer": [
+            "воскресенье"
+          ]
+        }
       ]
     }
   }

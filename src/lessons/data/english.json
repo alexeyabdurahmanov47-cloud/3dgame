@@ -4,137 +4,891 @@
     "2": {
       "title": "Hello! Colors and Animals",
       "read": [
-        { "title": "Hello! — Приветствия", "pic": "👋", "text": ["Англичане говорят [[Hello!|[хэлоу] — Привет!]] и [[Goodbye!|[гудбай] — До свидания!]]. Утром — [[Good morning!|[гуд монинг] — Доброе утро!]]", "Представься: [[My name is Tom.|[май нэйм из Том] — Меня зовут Том.]]"] },
-        { "title": "Colors and Animals", "pic": "🎨", "text": ["Цвета: [[red|красный 🔴]], [[blue|синий 🔵]], [[green|зелёный 🟢]], [[yellow|жёлтый 🟡]].", "Животные: [[cat|кошка 🐱]], [[dog|собака 🐶]], [[bird|птица 🐦]], [[fish|рыба 🐟]], [[cow|корова 🐮]]."] }
+        {
+          "title": "Hello! — Приветствия",
+          "pic": "👋",
+          "text": [
+            "Англичане говорят [[Hello!|[хэлоу] — Привет!]] и [[Goodbye!|[гудбай] — До свидания!]]. Утром — [[Good morning!|[гуд монинг] — Доброе утро!]]",
+            "Представься: [[My name is Tom.|[май нэйм из Том] — Меня зовут Том.]]"
+          ]
+        },
+        {
+          "title": "Colors and Animals",
+          "pic": "🎨",
+          "text": [
+            "Цвета: [[red|красный 🔴]], [[blue|синий 🔵]], [[green|зелёный 🟢]], [[yellow|жёлтый 🟡]].",
+            "Животные: [[cat|кошка 🐱]], [[dog|собака 🐶]], [[bird|птица 🐦]], [[fish|рыба 🐟]], [[cow|корова 🐮]]."
+          ]
+        },
+        {
+          "title": "Numbers 1–5",
+          "pic": "🖐️",
+          "text": [
+            "**one** [уан] — 1, **two** [ту] — 2, **three** [фри] — 3, **four** [фо] — 4, **five** [файв] — 5.",
+            "**How old are you?** — Сколько тебе лет? **I am seven.** — Мне семь."
+          ]
+        },
+        {
+          "title": "The alphabet",
+          "pic": "🔤",
+          "text": [
+            "В английском алфавите **26 букв**: A, B, C, D… Z.",
+            "Буквы называют не так, как читают: A [эй], B [би], C [си]. Спой «ABC song»!"
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "Как сказать «Привет!» по-английски?", "big": "👋", "options": ["Hello!", "Goodbye!", "Thank you!", "Sorry!"], "answer": "Hello!" },
-        { "type": "match", "q": "Соедини слово с переводом", "pairs": [["cat", "кошка"], ["dog", "собака"], ["bird", "птица"], ["fish", "рыба"]] },
-        { "type": "choice", "q": "What color is it?", "big": "🔴", "options": ["red", "blue", "green", "yellow"], "answer": "red" },
-        { "type": "order", "q": "Собери: «Меня зовут Том»", "items": ["My", "name", "is", "Tom"] },
-        { "type": "dictation", "q": "Послушай и запиши", "words": ["cat", "red", "dog"], "lang": "en-US" }
+        {
+          "type": "choice",
+          "q": "Как сказать «Привет!» по-английски?",
+          "big": "👋",
+          "options": [
+            "Hello!",
+            "Goodbye!",
+            "Thank you!",
+            "Sorry!"
+          ],
+          "answer": "Hello!"
+        },
+        {
+          "type": "match",
+          "q": "Соедини слово с переводом",
+          "pairs": [
+            [
+              "cat",
+              "кошка"
+            ],
+            [
+              "dog",
+              "собака"
+            ],
+            [
+              "bird",
+              "птица"
+            ],
+            [
+              "fish",
+              "рыба"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "What color is it?",
+          "big": "🔴",
+          "options": [
+            "red",
+            "blue",
+            "green",
+            "yellow"
+          ],
+          "answer": "red"
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Меня зовут Том»",
+          "items": [
+            "My",
+            "name",
+            "is",
+            "Tom"
+          ]
+        },
+        {
+          "type": "dictation",
+          "q": "Послушай и запиши",
+          "words": [
+            "cat",
+            "red",
+            "dog"
+          ],
+          "lang": "en-US"
+        }
       ]
     },
     "3": {
       "title": "My family — Моя семья",
       "read": [
-        { "title": "Family", "pic": "👨‍👩‍👧‍👦", "text": ["[[mother|мама]] (mum), [[father|папа]] (dad), [[sister|сестра]], [[brother|брат]], [[grandmother|бабушка]], [[grandfather|дедушка]].", "**This is my mum.** — Это моя мама. **I have got a brother.** — У меня есть брат."] },
-        { "title": "Numbers 1–10", "pic": "🔢", "text": ["one, two, three, four, five, six, seven, eight, nine, ten.", "**I am eight.** — Мне восемь лет."] }
+        {
+          "title": "Family",
+          "pic": "👨‍👩‍👧‍👦",
+          "text": [
+            "[[mother|мама]] (mum), [[father|папа]] (dad), [[sister|сестра]], [[brother|брат]], [[grandmother|бабушка]], [[grandfather|дедушка]].",
+            "**This is my mum.** — Это моя мама. **I have got a brother.** — У меня есть брат."
+          ]
+        },
+        {
+          "title": "Numbers 1–10",
+          "pic": "🔢",
+          "text": [
+            "one, two, three, four, five, six, seven, eight, nine, ten.",
+            "**I am eight.** — Мне восемь лет."
+          ]
+        },
+        {
+          "title": "My pets",
+          "pic": "🐹",
+          "text": [
+            "**I have got a dog.** — У меня есть собака. **Its name is Rex.** — Его зовут Рекс.",
+            "Ещё питомцы: [[hamster|хомяк]], [[parrot|попугай]], [[rabbit|кролик]], [[turtle|черепаха]]."
+          ]
+        },
+        {
+          "title": "Can / can't",
+          "pic": "🏊",
+          "text": [
+            "**I can swim.** — Я умею плавать. **I can't fly.** — Я не умею летать.",
+            "Вопрос: **Can you jump?** — **Yes, I can.** / **No, I can't.**"
+          ]
+        }
       ],
       "practice": [
-        { "type": "match", "q": "Соедини", "pairs": [["mother", "мама"], ["father", "папа"], ["sister", "сестра"], ["brother", "брат"]] },
-        { "type": "choice", "q": "Как сказать «бабушка»?", "options": ["grandmother", "grandfather", "mother"], "answer": "grandmother" },
-        { "type": "input", "q": "Напиши цифрой: «seven»", "answer": ["7"] },
-        { "type": "order", "q": "Собери: «Это мой папа»", "items": ["This", "is", "my", "dad"] },
-        { "type": "choice", "q": "two + three = ?", "options": ["five", "four", "six"], "answer": "five" }
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "mother",
+              "мама"
+            ],
+            [
+              "father",
+              "папа"
+            ],
+            [
+              "sister",
+              "сестра"
+            ],
+            [
+              "brother",
+              "брат"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "Как сказать «бабушка»?",
+          "options": [
+            "grandmother",
+            "grandfather",
+            "mother"
+          ],
+          "answer": "grandmother"
+        },
+        {
+          "type": "input",
+          "q": "Напиши цифрой: «seven»",
+          "answer": [
+            "7"
+          ]
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Это мой папа»",
+          "items": [
+            "This",
+            "is",
+            "my",
+            "dad"
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "two + three = ?",
+          "options": [
+            "five",
+            "four",
+            "six"
+          ],
+          "answer": "five"
+        }
       ]
     },
     "4": {
       "title": "Present Simple: My day",
       "read": [
-        { "title": "Present Simple", "pic": "⏰", "text": ["[[Present Simple|Настоящее простое время — для привычных, регулярных действий]] — то, что мы делаем обычно: **I get up at 7.** — Я встаю в 7.", "С **he / she / it** добавляем **-s**: **She reads books.** — Она читает книги."] },
-        { "title": "My day", "pic": "🌞", "text": ["**I wake up, I wash, I have breakfast, I go to school.**", "Слова-подсказки: **always** (всегда), **usually** (обычно), **every day** (каждый день)."] }
+        {
+          "title": "Present Simple",
+          "pic": "⏰",
+          "text": [
+            "[[Present Simple|Настоящее простое время — для привычных, регулярных действий]] — то, что мы делаем обычно: **I get up at 7.** — Я встаю в 7.",
+            "С **he / she / it** добавляем **-s**: **She reads books.** — Она читает книги."
+          ]
+        },
+        {
+          "title": "My day",
+          "pic": "🌞",
+          "text": [
+            "**I wake up, I wash, I have breakfast, I go to school.**",
+            "Слова-подсказки: **always** (всегда), **usually** (обычно), **every day** (каждый день)."
+          ]
+        },
+        {
+          "title": "Days of the week",
+          "pic": "📅",
+          "text": [
+            "**Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday**.",
+            "Дни недели в английском всегда пишутся **с большой буквы**: on Monday — в понедельник."
+          ]
+        },
+        {
+          "title": "What time is it?",
+          "pic": "🕗",
+          "text": [
+            "**It's seven o'clock.** — Сейчас семь часов. **It's half past eight.** — Половина девятого.",
+            "**a quarter past** — четверть после, **a quarter to** — без четверти."
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "He ___ football every day.", "options": ["plays", "play", "playing"], "answer": "plays", "explain": "С he добавляем -s." },
-        { "type": "choice", "q": "I ___ to school.", "options": ["go", "goes", "going"], "answer": "go" },
-        { "type": "match", "q": "Соедини", "pairs": [["always", "всегда"], ["usually", "обычно"], ["every day", "каждый день"]] },
-        { "type": "order", "q": "Собери: «Она читает книги»", "items": ["She", "reads", "books"] },
-        { "type": "input", "q": "Переведи: breakfast", "answer": ["завтрак"] }
+        {
+          "type": "choice",
+          "q": "He ___ football every day.",
+          "options": [
+            "plays",
+            "play",
+            "playing"
+          ],
+          "answer": "plays",
+          "explain": "С he добавляем -s."
+        },
+        {
+          "type": "choice",
+          "q": "I ___ to school.",
+          "options": [
+            "go",
+            "goes",
+            "going"
+          ],
+          "answer": "go"
+        },
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "always",
+              "всегда"
+            ],
+            [
+              "usually",
+              "обычно"
+            ],
+            [
+              "every day",
+              "каждый день"
+            ]
+          ]
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Она читает книги»",
+          "items": [
+            "She",
+            "reads",
+            "books"
+          ]
+        },
+        {
+          "type": "input",
+          "q": "Переведи: breakfast",
+          "answer": [
+            "завтрак"
+          ]
+        }
       ]
     },
     "5": {
       "title": "My school: There is / There are",
       "read": [
-        { "title": "There is / There are", "pic": "🏫", "text": ["**There is** — есть, находится (один предмет): **There is a board in the classroom.**", "**There are** — для многих: **There are ten desks.**"] },
-        { "title": "School things", "pic": "✏️", "text": ["[[pen|ручка]], [[pencil|карандаш]], [[book|книга]], [[ruler|линейка]], [[bag|сумка, рюкзак]], [[desk|парта]].", "Предметы: **Maths, English, History, Art, PE**."] }
+        {
+          "title": "There is / There are",
+          "pic": "🏫",
+          "text": [
+            "**There is** — есть, находится (один предмет): **There is a board in the classroom.**",
+            "**There are** — для многих: **There are ten desks.**"
+          ]
+        },
+        {
+          "title": "School things",
+          "pic": "✏️",
+          "text": [
+            "[[pen|ручка]], [[pencil|карандаш]], [[book|книга]], [[ruler|линейка]], [[bag|сумка, рюкзак]], [[desk|парта]].",
+            "Предметы: **Maths, English, History, Art, PE**."
+          ]
+        },
+        {
+          "title": "Prepositions of place",
+          "pic": "📦",
+          "text": [
+            "[[in|в]], [[on|на]], [[under|под]], [[next to|рядом с]], [[behind|за]], [[in front of|перед]].",
+            "**The cat is under the table.** — Кот под столом."
+          ]
+        },
+        {
+          "title": "Present Continuous",
+          "pic": "🎬",
+          "text": [
+            "Действие **прямо сейчас**: **am/is/are + глагол-ing**: **I am reading.** — Я сейчас читаю.",
+            "Слова-подсказки: **now**, **at the moment**, **Look!**"
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "There ___ two windows.", "options": ["are", "is", "am"], "answer": "are" },
-        { "type": "choice", "q": "There ___ a computer.", "options": ["is", "are"], "answer": "is" },
-        { "type": "match", "q": "Соедини", "pairs": [["pen", "ручка"], ["ruler", "линейка"], ["desk", "парта"], ["pencil", "карандаш"]] },
-        { "type": "dictation", "q": "Диктант", "words": ["book", "school", "pencil"], "lang": "en-US" },
-        { "type": "truefalse", "q": "PE — это физкультура", "answer": true }
+        {
+          "type": "choice",
+          "q": "There ___ two windows.",
+          "options": [
+            "are",
+            "is",
+            "am"
+          ],
+          "answer": "are"
+        },
+        {
+          "type": "choice",
+          "q": "There ___ a computer.",
+          "options": [
+            "is",
+            "are"
+          ],
+          "answer": "is"
+        },
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "pen",
+              "ручка"
+            ],
+            [
+              "ruler",
+              "линейка"
+            ],
+            [
+              "desk",
+              "парта"
+            ],
+            [
+              "pencil",
+              "карандаш"
+            ]
+          ]
+        },
+        {
+          "type": "dictation",
+          "q": "Диктант",
+          "words": [
+            "book",
+            "school",
+            "pencil"
+          ],
+          "lang": "en-US"
+        },
+        {
+          "type": "truefalse",
+          "q": "PE — это физкультура",
+          "answer": true
+        }
       ]
     },
     "6": {
       "title": "Past Simple: Last weekend",
       "read": [
-        { "title": "Past Simple", "pic": "⏪", "text": ["[[Past Simple|Прошедшее простое время — действие в прошлом]]: правильные глаголы получают **-ed**: play → **played**, watch → **watched**.", "Слова-подсказки: **yesterday** (вчера), **last week** (на прошлой неделе), **ago** (назад)."] },
-        { "title": "Неправильные глаголы", "pic": "📒", "text": ["Некоторые глаголы надо запомнить: go → **went**, see → **saw**, have → **had**, eat → **ate**, be → **was/were**.", "**Last weekend I went to the park.**"] }
+        {
+          "title": "Past Simple",
+          "pic": "⏪",
+          "text": [
+            "[[Past Simple|Прошедшее простое время — действие в прошлом]]: правильные глаголы получают **-ed**: play → **played**, watch → **watched**.",
+            "Слова-подсказки: **yesterday** (вчера), **last week** (на прошлой неделе), **ago** (назад)."
+          ]
+        },
+        {
+          "title": "Неправильные глаголы",
+          "pic": "📒",
+          "text": [
+            "Некоторые глаголы надо запомнить: go → **went**, see → **saw**, have → **had**, eat → **ate**, be → **was/were**.",
+            "**Last weekend I went to the park.**"
+          ]
+        },
+        {
+          "title": "Food and drinks",
+          "pic": "🍎",
+          "text": [
+            "[[apple|яблоко]], [[bread|хлеб]], [[cheese|сыр]], [[milk|молоко]], [[juice|сок]], [[soup|суп]].",
+            "**some** — в утверждениях (some milk), **any** — в вопросах и отрицаниях (Is there any juice?)."
+          ]
+        },
+        {
+          "title": "Was / were",
+          "pic": "⏮️",
+          "text": [
+            "Прошедшее время глагола **to be**: **I/he/she/it was**, **we/you/they were**.",
+            "**I was at home yesterday.** — Вчера я был дома."
+          ]
+        }
       ],
       "practice": [
-        { "type": "match", "q": "Глагол → Past Simple", "pairs": [["go", "went"], ["see", "saw"], ["have", "had"], ["play", "played"]] },
-        { "type": "choice", "q": "Yesterday I ___ TV.", "options": ["watched", "watch", "watches"], "answer": "watched" },
-        { "type": "input", "q": "Past Simple от «eat»", "answer": ["ate"] },
-        { "type": "truefalse", "q": "«yesterday» значит «завтра»", "answer": false },
-        { "type": "order", "q": "Собери: «Я ходил в парк»", "items": ["I", "went", "to", "the", "park"] }
+        {
+          "type": "match",
+          "q": "Глагол → Past Simple",
+          "pairs": [
+            [
+              "go",
+              "went"
+            ],
+            [
+              "see",
+              "saw"
+            ],
+            [
+              "have",
+              "had"
+            ],
+            [
+              "play",
+              "played"
+            ]
+          ]
+        },
+        {
+          "type": "choice",
+          "q": "Yesterday I ___ TV.",
+          "options": [
+            "watched",
+            "watch",
+            "watches"
+          ],
+          "answer": "watched"
+        },
+        {
+          "type": "input",
+          "q": "Past Simple от «eat»",
+          "answer": [
+            "ate"
+          ]
+        },
+        {
+          "type": "truefalse",
+          "q": "«yesterday» значит «завтра»",
+          "answer": false
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Я ходил в парк»",
+          "items": [
+            "I",
+            "went",
+            "to",
+            "the",
+            "park"
+          ]
+        }
       ]
     },
     "7": {
       "title": "Comparatives: bigger, the biggest",
       "read": [
-        { "title": "Сравнение", "pic": "🐘", "text": ["Короткие прилагательные: **big → bigger → the biggest**, **fast → faster → the fastest**.", "Длинные: **beautiful → more beautiful → the most beautiful**."] },
-        { "title": "Исключения", "pic": "⭐", "text": ["**good → better → the best**, **bad → worse → the worst**.", "**An elephant is bigger than a mouse.** — Слон больше мыши."] }
+        {
+          "title": "Сравнение",
+          "pic": "🐘",
+          "text": [
+            "Короткие прилагательные: **big → bigger → the biggest**, **fast → faster → the fastest**.",
+            "Длинные: **beautiful → more beautiful → the most beautiful**."
+          ]
+        },
+        {
+          "title": "Исключения",
+          "pic": "⭐",
+          "text": [
+            "**good → better → the best**, **bad → worse → the worst**.",
+            "**An elephant is bigger than a mouse.** — Слон больше мыши."
+          ]
+        },
+        {
+          "title": "Travelling",
+          "pic": "✈️",
+          "text": [
+            "[[airport|аэропорт]], [[ticket|билет]], [[passport|паспорт]], [[suitcase|чемодан]], [[sightseeing|осмотр достопримечательностей]].",
+            "**London** — столица Великобритании: Big Ben, Tower Bridge, the London Eye."
+          ]
+        },
+        {
+          "title": "Modal verbs",
+          "pic": "🚦",
+          "text": [
+            "**must** — должен (обязательно), **should** — следует (совет), **may** — можно (разрешение).",
+            "**You must wear a seat belt.** **You should drink more water.**"
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "A cat is ___ than a mouse.", "options": ["bigger", "big", "biggest"], "answer": "bigger" },
-        { "type": "choice", "q": "good → better → ?", "options": ["the best", "the goodest", "the better"], "answer": "the best" },
-        { "type": "match", "q": "Соедини", "pairs": [["fast", "faster"], ["bad", "worse"], ["beautiful", "more beautiful"]] },
-        { "type": "input", "q": "Превосходная степень: tall → the …", "answer": ["tallest", "the tallest"] },
-        { "type": "truefalse", "q": "than — значит «чем»", "answer": true }
+        {
+          "type": "choice",
+          "q": "A cat is ___ than a mouse.",
+          "options": [
+            "bigger",
+            "big",
+            "biggest"
+          ],
+          "answer": "bigger"
+        },
+        {
+          "type": "choice",
+          "q": "good → better → ?",
+          "options": [
+            "the best",
+            "the goodest",
+            "the better"
+          ],
+          "answer": "the best"
+        },
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "fast",
+              "faster"
+            ],
+            [
+              "bad",
+              "worse"
+            ],
+            [
+              "beautiful",
+              "more beautiful"
+            ]
+          ]
+        },
+        {
+          "type": "input",
+          "q": "Превосходная степень: tall → the …",
+          "answer": [
+            "tallest",
+            "the tallest"
+          ]
+        },
+        {
+          "type": "truefalse",
+          "q": "than — значит «чем»",
+          "answer": true
+        }
       ]
     },
     "8": {
       "title": "Future: will / be going to",
       "read": [
-        { "title": "Will", "pic": "🔮", "text": ["**Will** — для предсказаний и спонтанных решений: **I think it will rain.** **I will help you!**"] },
-        { "title": "Be going to", "pic": "🗓️", "text": ["**Be going to** — для планов: **I am going to visit my granny on Sunday.**", "Отрицание: **I won't (will not)**, **I'm not going to**."] }
+        {
+          "title": "Will",
+          "pic": "🔮",
+          "text": [
+            "**Will** — для предсказаний и спонтанных решений: **I think it will rain.** **I will help you!**"
+          ]
+        },
+        {
+          "title": "Be going to",
+          "pic": "🗓️",
+          "text": [
+            "**Be going to** — для планов: **I am going to visit my granny on Sunday.**",
+            "Отрицание: **I won't (will not)**, **I'm not going to**."
+          ]
+        },
+        {
+          "title": "Past Continuous",
+          "pic": "🌧️",
+          "text": [
+            "Действие длилось в прошлом: **was/were + -ing**: **I was sleeping at 10 pm.**",
+            "Часто с Past Simple: **I was reading when the phone rang.**"
+          ]
+        },
+        {
+          "title": "Countries and nationalities",
+          "pic": "🌍",
+          "text": [
+            "Russia — Russian, Britain — British, the USA — American, France — French, Germany — German, Japan — Japanese.",
+            "Названия стран и национальностей пишутся **с большой буквы**."
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "Look at the clouds! It ___ rain.", "options": ["is going to", "goes", "went"], "answer": "is going to" },
-        { "type": "choice", "q": "I'm thirsty. — I ___ get you some water!", "options": ["will", "am", "did"], "answer": "will" },
-        { "type": "input", "q": "Сокращение от «will not»", "answer": ["won't", "wont"] },
-        { "type": "order", "q": "Собери: «Я собираюсь стать врачом»", "items": ["I", "am", "going", "to", "be", "a", "doctor"] }
+        {
+          "type": "choice",
+          "q": "Look at the clouds! It ___ rain.",
+          "options": [
+            "is going to",
+            "goes",
+            "went"
+          ],
+          "answer": "is going to"
+        },
+        {
+          "type": "choice",
+          "q": "I'm thirsty. — I ___ get you some water!",
+          "options": [
+            "will",
+            "am",
+            "did"
+          ],
+          "answer": "will"
+        },
+        {
+          "type": "input",
+          "q": "Сокращение от «will not»",
+          "answer": [
+            "won't",
+            "wont"
+          ]
+        },
+        {
+          "type": "order",
+          "q": "Собери: «Я собираюсь стать врачом»",
+          "items": [
+            "I",
+            "am",
+            "going",
+            "to",
+            "be",
+            "a",
+            "doctor"
+          ]
+        }
       ]
     },
     "9": {
       "title": "Present Perfect",
       "read": [
-        { "title": "Have + V3", "pic": "✅", "text": ["[[Present Perfect|Действие завершилось, а результат важен сейчас]]: **have/has + 3-я форма глагола**: **I have finished my homework.**", "Слова-подсказки: **already** (уже), **just** (только что), **ever** (когда-либо), **never** (никогда), **yet** (ещё)."] },
-        { "title": "Past Simple или Present Perfect?", "pic": "⚖️", "text": ["Если есть **точное время в прошлом** (yesterday, in 2020) — Past Simple. Если важен **результат** — Present Perfect: **Have you ever been to London?**"] }
+        {
+          "title": "Have + V3",
+          "pic": "✅",
+          "text": [
+            "[[Present Perfect|Действие завершилось, а результат важен сейчас]]: **have/has + 3-я форма глагола**: **I have finished my homework.**",
+            "Слова-подсказки: **already** (уже), **just** (только что), **ever** (когда-либо), **never** (никогда), **yet** (ещё)."
+          ]
+        },
+        {
+          "title": "Past Simple или Present Perfect?",
+          "pic": "⚖️",
+          "text": [
+            "Если есть **точное время в прошлом** (yesterday, in 2020) — Past Simple. Если важен **результат** — Present Perfect: **Have you ever been to London?**"
+          ]
+        },
+        {
+          "title": "Reported speech",
+          "pic": "🗣️",
+          "text": [
+            "Косвенная речь: **He said, “I am tired.”** → **He said (that) he was tired.**",
+            "Время «сдвигается назад»: am → was, will → would, can → could."
+          ]
+        },
+        {
+          "title": "Phrasal verbs",
+          "pic": "🧷",
+          "text": [
+            "[[look for|искать]], [[give up|сдаваться]], [[get up|вставать]], [[turn on|включать]], [[find out|узнавать]].",
+            "Значение фразового глагола часто нельзя угадать по частям — его нужно выучить."
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "She ___ already done it.", "options": ["has", "have", "is"], "answer": "has" },
-        { "type": "choice", "q": "I ___ to London last year.", "options": ["went", "have been", "have gone"], "answer": "went", "explain": "Есть точное время — Past Simple." },
-        { "type": "match", "q": "Соедини", "pairs": [["already", "уже"], ["just", "только что"], ["never", "никогда"], ["yet", "ещё (в вопросах)"]] },
-        { "type": "input", "q": "3-я форма глагола «write»", "answer": ["written"] }
+        {
+          "type": "choice",
+          "q": "She ___ already done it.",
+          "options": [
+            "has",
+            "have",
+            "is"
+          ],
+          "answer": "has"
+        },
+        {
+          "type": "choice",
+          "q": "I ___ to London last year.",
+          "options": [
+            "went",
+            "have been",
+            "have gone"
+          ],
+          "answer": "went",
+          "explain": "Есть точное время — Past Simple."
+        },
+        {
+          "type": "match",
+          "q": "Соедини",
+          "pairs": [
+            [
+              "already",
+              "уже"
+            ],
+            [
+              "just",
+              "только что"
+            ],
+            [
+              "never",
+              "никогда"
+            ],
+            [
+              "yet",
+              "ещё (в вопросах)"
+            ]
+          ]
+        },
+        {
+          "type": "input",
+          "q": "3-я форма глагола «write»",
+          "answer": [
+            "written"
+          ]
+        }
       ]
     },
     "10": {
       "title": "Conditionals: If …",
       "read": [
-        { "title": "First Conditional", "pic": "☔", "text": ["Реальное условие: **If + Present, will + V**: **If it rains, we will stay at home.**"] },
-        { "title": "Second Conditional", "pic": "💭", "text": ["Нереальное: **If + Past, would + V**: **If I had a million, I would travel the world.**", "**If I were you, I would study harder.**"] }
+        {
+          "title": "First Conditional",
+          "pic": "☔",
+          "text": [
+            "Реальное условие: **If + Present, will + V**: **If it rains, we will stay at home.**"
+          ]
+        },
+        {
+          "title": "Second Conditional",
+          "pic": "💭",
+          "text": [
+            "Нереальное: **If + Past, would + V**: **If I had a million, I would travel the world.**",
+            "**If I were you, I would study harder.**"
+          ]
+        },
+        {
+          "title": "Gerund and infinitive",
+          "pic": "🎯",
+          "text": [
+            "После **enjoy, finish, avoid** — герундий (-ing): **I enjoy reading.**",
+            "После **want, decide, hope** — инфинитив с to: **I want to travel.**"
+          ]
+        },
+        {
+          "title": "Writing an email",
+          "pic": "📧",
+          "text": [
+            "Письмо: **Dear Tom,** → благодарность за письмо → ответы на вопросы → свои вопросы → **Best wishes, Anna**.",
+            "Пиши абзацами и соблюдай объём (около 100–140 слов)."
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "If you heat ice, it ___ melt.", "options": ["will", "would", "is"], "answer": "will" },
-        { "type": "choice", "q": "If I ___ a bird, I would fly.", "options": ["were", "am", "will be"], "answer": "were" },
-        { "type": "truefalse", "q": "Second Conditional описывает нереальную ситуацию", "answer": true },
-        { "type": "order", "q": "Собери предложение", "items": ["If", "it", "rains,", "we", "will", "stay", "home"] }
+        {
+          "type": "choice",
+          "q": "If you heat ice, it ___ melt.",
+          "options": [
+            "will",
+            "would",
+            "is"
+          ],
+          "answer": "will"
+        },
+        {
+          "type": "choice",
+          "q": "If I ___ a bird, I would fly.",
+          "options": [
+            "were",
+            "am",
+            "will be"
+          ],
+          "answer": "were"
+        },
+        {
+          "type": "truefalse",
+          "q": "Second Conditional описывает нереальную ситуацию",
+          "answer": true
+        },
+        {
+          "type": "order",
+          "q": "Собери предложение",
+          "items": [
+            "If",
+            "it",
+            "rains,",
+            "we",
+            "will",
+            "stay",
+            "home"
+          ]
+        }
       ]
     },
     "11": {
       "title": "Passive Voice",
       "read": [
-        { "title": "Пассивный залог", "pic": "🏗️", "text": ["[[Passive Voice|Залог, когда важно действие, а не тот, кто его совершил]]: **be + V3**. **The house was built in 1990.**", "Present: **is made**, Past: **was made**, Future: **will be made**."] },
-        { "title": "Примеры", "pic": "📱", "text": ["**English is spoken all over the world.** **The Mona Lisa was painted by Leonardo da Vinci.**", "Кто совершил действие — после **by**."] }
+        {
+          "title": "Пассивный залог",
+          "pic": "🏗️",
+          "text": [
+            "[[Passive Voice|Залог, когда важно действие, а не тот, кто его совершил]]: **be + V3**. **The house was built in 1990.**",
+            "Present: **is made**, Past: **was made**, Future: **will be made**."
+          ]
+        },
+        {
+          "title": "Примеры",
+          "pic": "📱",
+          "text": [
+            "**English is spoken all over the world.** **The Mona Lisa was painted by Leonardo da Vinci.**",
+            "Кто совершил действие — после **by**."
+          ]
+        },
+        {
+          "title": "Third Conditional",
+          "pic": "🔙",
+          "text": [
+            "Сожаление о прошлом: **If I had studied, I would have passed the exam.**",
+            "Если бы (тогда) … — то (тогда) бы …"
+          ]
+        },
+        {
+          "title": "Exam tips",
+          "pic": "🏁",
+          "text": [
+            "На ЕГЭ по английскому: аудирование, чтение, грамматика, письмо и устная часть.",
+            "Совет: каждый день читай короткий текст и учи 10 новых слов."
+          ]
+        }
       ],
       "practice": [
-        { "type": "choice", "q": "This book ___ written by Tolstoy.", "options": ["was", "is", "were"], "answer": "was" },
-        { "type": "choice", "q": "Paper ___ from wood.", "options": ["is made", "makes", "made"], "answer": "is made" },
-        { "type": "input", "q": "Каким словом вводят того, кто совершил действие?", "answer": ["by"] },
-        { "type": "truefalse", "q": "Passive Voice = be + 3-я форма глагола", "answer": true }
+        {
+          "type": "choice",
+          "q": "This book ___ written by Tolstoy.",
+          "options": [
+            "was",
+            "is",
+            "were"
+          ],
+          "answer": "was"
+        },
+        {
+          "type": "choice",
+          "q": "Paper ___ from wood.",
+          "options": [
+            "is made",
+            "makes",
+            "made"
+          ],
+          "answer": "is made"
+        },
+        {
+          "type": "input",
+          "q": "Каким словом вводят того, кто совершил действие?",
+          "answer": [
+            "by"
+          ]
+        },
+        {
+          "type": "truefalse",
+          "q": "Passive Voice = be + 3-я форма глагола",
+          "answer": true
+        }
       ]
     }
   }
