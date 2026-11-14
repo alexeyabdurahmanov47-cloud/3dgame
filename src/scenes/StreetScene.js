@@ -133,6 +133,7 @@ export class StreetScene extends BaseScene {
 
     // ---------- школа ----------
     this.school();
+    if (g.raid.happenedToday()) this.police();
 
     // ---------- окружение ----------
     [[-36, 20, '#74b9ff'], [-36, 50, '#ffeaa7'], [-36, 80, '#55efc4'], [36, 30, '#fab1a0'], [36, 60, '#a29bfe'], [36, 85, '#ffeaa7'], [-30, 125, '#fd79a8'], [32, 125, '#81ecec']].forEach(([x, z, c], i) => house(this, x, z, 10, 10, 6 + (i % 3) * 3, c, ['#d63031', '#6c5ce7', '#0984e3'][i % 3]));
@@ -527,6 +528,54 @@ export class StreetScene extends BaseScene {
         g.goTo('school', 'entrance', '🏫 Школа · 1 этаж');
       },
     });
+  }
+
+  // Полиция у школы во время (и после) захвата
+  police() {
+    const g = this.game;
+    const bars = [];
+    [[-7, 103.5, 0.4], [7, 103.8, -0.3], [12, 100.5, 1.2]].forEach(([x, z, rot], i) => {
+      const car = this.makeCarMesh('#f5f6fa');
+      car.position.set(x, 0, z);
+      car.rotation.y = rot;
+      const stripe = new THREE.Mesh(new THREE.BoxGeometry(4.02, 0.22, 1.92), mat('#0c2461'));
+      stripe.position.y = 0.75;
+      car.add(stripe);
+      const red = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.5), mat('#ff3b30'));
+      const blue = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.5), mat('#3fa7ff'));
+      red.position.set(-0.2, 1.92, -0.4);
+      blue.position.set(-0.2, 1.92, 0.4);
+      car.add(red, blue);
+      const txt = signText(this, 'ПОЛИЦИЯ', 0, 0, 0, 2.2, 0.4, 0, { bg: null, fg: '#0c2461', res: 0.4 });
+      txt.removeFromParent();
+      txt.position.set(0, 0.95, 0.97);
+      car.add(txt);
+      this.addObj(car);
+      this.world.addBox(x - 2.2, x + 2.2, 0, 1.8, z - 2.2, z + 2.2, { camera: false });
+      bars.push({ red, blue, ph: i * 0.37 });
+    });
+    this.onUpdate(() => {
+      const t = performance.now() / 1000;
+      bars.forEach((b) => {
+        const on = Math.floor((t + b.ph) * 4) % 2 === 0;
+        b.red.material = mat(on ? '#ff3b30' : '#5a1010', { emissive: on ? '#ff0000' : '#000000' });
+        b.blue.material = mat(on ? '#1a2a5a' : '#3fa7ff', { emissive: on ? '#000000' : '#0055ff' });
+      });
+    });
+    const active = g.raid.active();
+    npc(this, {
+      x: -3.5, z: 105.5, yaw: Math.PI, name: 'Полицейский Иванов', avatar: '👮',
+      look: npcLook('#0c2461', '#0c2461', '#2d3436', { shape: 'tall', acc: { hat: { model: 'cap', color: '#0c2461' } } }),
+      lines: () => (g.raid.active() ? ['Школа оцеплена! Внутри грабители. Майор Орлов ждёт тебя — снаряжение в ящиках у лифта на каждом этаже.'] : ['Всё под контролем! Спасибо за помощь, юный герой!']),
+    });
+    npc(this, {
+      x: 4, z: 106, yaw: Math.PI, name: 'Полицейский Петрова', avatar: '👮‍♀️',
+      look: npcLook('#0c2461', '#0c2461', '#6d4c41', { shape: 'tall', acc: { hat: { model: 'cap', color: '#0c2461' } } }),
+      lines: ['Не подходи к окнам школы и слушай указания полиции.'],
+    });
+    this.label([0, 3.2, 104], active ? '🚨 Школа оцеплена полицией' : '👮 Полиция', { maxDist: 40, cls: 'goal' });
+    // лента ограждения
+    for (let x = -10; x <= 10; x += 2) this.box(x, 0.9, 107.5, 2, 0.08, 0.04, x % 4 === 0 ? '#f9ca24' : '#2d3436', { cast: false });
   }
 
   updateGoal() {

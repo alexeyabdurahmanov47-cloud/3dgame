@@ -93,6 +93,7 @@ export class SchoolScene extends BaseScene {
       for (const o of this.lazy) o.obj.visible = Math.abs(o.x - p.x) < 15;
     });
 
+    this.game.raid.populate(this);
     this.spawn('entrance', -7.5, 0, 2, 0);
     this.spawn('lift', -5.5, 0, 23.4, Math.PI);
     this.spawn('stairsUp', -10.5, 0, 15.2, Math.PI / 2);
@@ -546,6 +547,10 @@ export class SchoolScene extends BaseScene {
   // ---------- урок ----------
   startLesson(L, seat, dir, room, teacher) {
     const g = this.game;
+    if (g.raid.active()) {
+      g.ui.dialog.show([{ name: 'Майор Орлов (рация)', avatar: '👮', text: 'Сейчас не до уроков! Сначала помоги полиции — задание сверху.' }]);
+      return;
+    }
     const cur = g.quests.currentLesson();
     const scheduled = !!(cur && cur.lesson === L.id);
     const p = g.player;
@@ -579,9 +584,12 @@ export class SchoolScene extends BaseScene {
     g.cam.override = null;
     g.cam.snap(p.pos);
     if (scheduled) {
+      const stepNo = g.quests.steps.find((s) => s.id === `lesson_${L.id}`)?.no;
       g.quests.complete(`lesson_${L.id}`, true);
       const next = g.quests.currentLesson();
-      if (next) {
+      if (stepNo === 3 && !g.raid.happenedToday()) {
+        setTimeout(() => g.raid.start(this.floor), 700);
+      } else if (next) {
         setTimeout(() => {
           g.ringBell('Перемена! 🎉');
           setTimeout(() => this.bellNext(), 3500);

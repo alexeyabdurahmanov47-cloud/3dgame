@@ -83,6 +83,7 @@ export class QuestManager {
   target() {
     const g = this.game;
     const s = g.scene;
+    if (g.raid && g.raid.active()) return g.raid.target();
     const step = this.current();
     if (!s || !step) return null;
     let p = step.scene === s.name ? s.points[step.target] : s.navPoint(step.scene);

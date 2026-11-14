@@ -28,6 +28,7 @@ export class Input {
       if (!this.enabled) return;
       this.dragging = true;
       if (e.button === 2) { this.rightDrag = true; canvas.style.cursor = 'grabbing'; }
+      else if (this.locked && e.button === 0) this.press('KeyF'); // выстрел снаряжением при захваченном курсоре
       else if (!this.isTouch && this.wantLock && !this.locked && canvas.requestPointerLock) {
         try {
           const p = canvas.requestPointerLock();

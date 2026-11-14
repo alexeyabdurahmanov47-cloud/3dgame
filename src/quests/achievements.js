@@ -26,6 +26,9 @@ export const ACHIEVEMENTS = [
   { id: 'breakfast', icon: '🥞', name: 'Завтрак чемпиона', desc: 'Позавтракай перед школой' },
   { id: 'clean', icon: '🪥', name: 'Чистюля', desc: 'Почисти зубы утром' },
   { id: 'level5', icon: '🚀', name: 'Пятый уровень', desc: 'Достигни 5 уровня' },
+  { id: 'hero', icon: '🦸', name: 'Герой школы', desc: 'Задержи всех грабителей' },
+  { id: 'sapper', icon: '💣', name: 'Сапёр', desc: 'Обезвредь бомбу вовремя' },
+  { id: 'rescuer', icon: '🆘', name: 'Спасатель', desc: 'Освободи заложника' },
   { id: 'curious', icon: '🧐', name: 'Любопытный', desc: 'Прочитай 5 табличек' },
 ];
 

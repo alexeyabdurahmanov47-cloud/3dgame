@@ -154,6 +154,18 @@ export class HUD {
     ctx.fill();
     ctx.stroke();
     ctx.restore();
+    // грабители (миссия)
+    if (g.raid && g.raid.active()) {
+      for (const rp of g.raid.mapDots()) {
+        const dx = rp.x - p.x, dz = rp.z - p.z;
+        const f = dx * -Math.sin(yaw) + dz * -Math.cos(yaw), r = dx * Math.cos(yaw) + dz * -Math.sin(yaw);
+        let mx = r * zoom, my = -f * zoom;
+        const dd = Math.hypot(mx, my), R = W / 2 - 14;
+        if (dd > R) { mx *= R / dd; my *= R / dd; }
+        ctx.fillStyle = '#d63031'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(cx + mx, cy + my, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      }
+    }
     // цель
     if (target) {
       const dx = target.x - p.x, dz = target.z - p.z;

@@ -20,6 +20,7 @@ import { Achievements } from '../quests/achievements.js';
 import { LessonManager } from '../lessons/LessonManager.js';
 import { LessonUI } from '../lessons/LessonUI.js';
 import { MenuScene } from '../scenes/MenuScene.js';
+import { Raid } from '../quests/Raid.js';
 import { HomeScene } from '../scenes/HomeScene.js';
 import { HallwayScene } from '../scenes/HallwayScene.js';
 import { ElevatorScene } from '../scenes/ElevatorScene.js';
@@ -51,6 +52,7 @@ export class Game {
     this.ui = new UI(this);
     this.lessons = new LessonManager();
     this.quests = new QuestManager(this);
+    this.raid = new Raid(this);
     this.player = new Player(this);
     this.hud = new HUD(this);
     this.labels = new Labels(this);
@@ -322,9 +324,17 @@ export class Game {
       this.player.update(dt, this.input, this.cam.yaw, s.world);
       s.update(dt);
       this.updateInteraction();
+      this.raid.update(dt);
       this.lesson.update(dt);
     }
-    this.hud._extraSub = this.quests.extraSub();
+    this.hud._extraSub = this.raid.active() ? this.raid.extraSub() : this.quests.extraSub();
+    if (this.state === 'play') {
+      const alarm = this.raid.active();
+      if (alarm) this.hud.setQuest(this.raid.questText(), '', '🚨');
+      else if (this._alarm) this.quests.refresh();
+      this._alarm = alarm;
+      this.hud.el.classList.toggle('alarm', alarm);
+    }
     this.cam.update(dt, this.player.pos, this.input.consumeLook(), s.world, this.save.settings);
     this.fx.update(dt);
     const target = this.state === 'play' ? this.quests.target() : null;

@@ -12,7 +12,7 @@ export class Joystick {
       b.addEventListener('touchend', () => game.input.keys.delete(code));
       return b;
     };
-    this.el = h('div', { class: 'mobile' }, this.pad, h('div', { class: 'mbtns' }, btn('⤒', 'Space'), btn('E', 'KeyE', 'act')));
+    this.el = h('div', { class: 'mobile' }, this.pad, h('div', { class: 'mbtns' }, btn('⚡', 'KeyF'), btn('⤒', 'Space'), btn('E', 'KeyE', 'act')));
     let id = null, ox = 0, oy = 0;
     const R = 55;
     const move = (t) => {

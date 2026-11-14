@@ -10,6 +10,7 @@ import { SaveManager } from '../save/SaveManager.js';
 
 export const LOG_TYPES = {
   lesson: { name: 'Уроки', icon: '📖', color: '#6c5ce7' },
+  raid: { name: 'Захват школы', icon: '🚨', color: '#d63031' },
   answer: { name: 'Ответы', icon: '✏️', color: '#0984e3' },
   practice: { name: 'Практика', icon: '🔬', color: '#00a383' },
   quest: { name: 'Задания', icon: '✅', color: '#2e9e5b' },
