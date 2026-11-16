@@ -44,6 +44,8 @@ export class Game {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
     this.camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 400);
     this.cam = new ThirdPersonCamera(this.camera);
     this.applyQuality();

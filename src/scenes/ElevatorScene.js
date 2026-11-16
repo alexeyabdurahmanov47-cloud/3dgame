@@ -90,7 +90,7 @@ export class ElevatorScene extends BaseScene {
     this.box(0, 0, 8.05, 2, 2.4, 0.1, '#ffe8cc', D);
     this.box(-2.5, 0, 8.0, 1.2, 2.2, 0.1, '#6c5ce7', D);
     this.box(2.5, 0, 8.0, 1.2, 2.2, 0.1, '#00b894', D);
-    this.floorTex = textTexture('Этаж 3', { w: 512, h: 160, bg: '#ffffff', fg: '#6c5ce7', font: 'bold 90px Nunito, sans-serif' });
+    this.floorTex = textTexture('Этаж 3', { w: 512, h: 160, bg: '#ffffff', fg: '#6c5ce7', font: 'bold 90px Inter, sans-serif' });
     const fs = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.5), new THREE.MeshBasicMaterial({ map: this.floorTex, transparent: true }));
     fs.position.set(0, 2.6, 7.98);
     fs.rotation.y = Math.PI;
@@ -132,7 +132,7 @@ export class ElevatorScene extends BaseScene {
     this.landing.visible = !lobby;
     this.conc.root.visible = lobby;
     this.exitBlock.enabled = !lobby;
-    const t = textTexture(`Этаж ${this.floor}`, { w: 512, h: 160, bg: '#ffffff', fg: '#6c5ce7', font: 'bold 90px Nunito, sans-serif' });
+    const t = textTexture(`Этаж ${this.floor}`, { w: 512, h: 160, bg: '#ffffff', fg: '#6c5ce7', font: 'bold 90px Inter, sans-serif' });
     this.floorTex.image = t.image;
     this.floorTex.needsUpdate = true;
     const d = textTexture(String(this.floor), { w: 128, h: 96, bg: '#111', fg: '#ff4d4d', font: 'bold 70px monospace', radius: 10 });

@@ -82,12 +82,13 @@ export class CharacterModel {
     this.actions = actions;
     this.cur = null;
     this.root.add(inst);
-    this.headScale = 1;
+    // взрослые пропорции: голова меньше, чем у «мультяшной» модели
+    this.headScale = 0.7;
     if (shape === 'tall') inst.scale.set(1, 1.12, 1);
-    if (shape === 'mini') { inst.scale.setScalar(0.84); this.headScale = 1.18; }
+    if (shape === 'mini') { inst.scale.setScalar(0.84); this.headScale = 0.85; }
     // перекраска материалов под скин
     const robot = shape === 'robot';
-    const tint = { Skin: robot ? '#95a5a6' : s.skinTone, Body: s.body, Pants: s.pants, Shoes: s.shoes, Hair: s.hair };
+    const tint = { Skin: robot ? '#95a5a6' : s.skinTone, Cheek: robot ? '#95a5a6' : s.skinTone, Mouth: '#8a4b45', Body: s.body, Pants: s.pants, Shoes: s.shoes, Hair: s.hair };
     this.parts = {};
     inst.traverse((o) => {
       if (o.isBone) return;
@@ -493,7 +494,7 @@ export class CharacterModel {
     if (this.push > 0) this.push -= dt;
     if (this.root.visible) {
       this.mixer.update(dt);
-      if (this.headScale !== 1 && this.bones.head) this.bones.head.scale.multiplyScalar(this.headScale);
+      if (this.headScale !== 1 && this.bones.head) this.bones.head.scale.setScalar(this.headScale);
     }
     if (this.propeller) this.propeller.rotation.y += dt * (4 + speed * 30);
     if (this.cape) this.cape.rotation.x = 0.1 + speed * 0.6 + Math.sin(this.t * 6) * 0.05 * (0.3 + speed);

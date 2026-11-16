@@ -183,7 +183,7 @@ export class HUD {
       ctx.fill();
       ctx.stroke();
       ctx.fillStyle = '#5a3e00';
-      ctx.font = 'bold 16px Nunito, sans-serif';
+      ctx.font = 'bold 16px Inter, sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText('★', cx + mx, cy + my + 1);
@@ -193,7 +193,7 @@ export class HUD {
     ctx.translate(cx, cy);
     ctx.rotate(yaw);
     ctx.fillStyle = '#d63031';
-    ctx.font = 'bold 22px Nunito, sans-serif';
+    ctx.font = 'bold 22px Inter, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText('С', 0, -W / 2 + 26);
     ctx.restore();

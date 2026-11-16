@@ -32,7 +32,7 @@ function robberLook(i) {
 }
 
 function tagSprite(text, bg) {
-  const tex = textTexture(text, { w: 512, h: 128, bg, fg: '#ffffff', font: 'bold 64px Nunito, sans-serif', radius: 40 });
+  const tex = textTexture(text, { w: 512, h: 128, bg, fg: '#ffffff', font: 'bold 64px Inter, sans-serif', radius: 40 });
   const m = new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true });
   const s = new THREE.Sprite(m);
   s.scale.set(2.2, 0.55, 1);
@@ -150,7 +150,7 @@ export class Raid {
     const cuffs = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 6, 12), mat('#b2bec3'));
     cuffs.position.set(0, 0.62, 0.32);
     r.model.body.add(cuffs);
-    const tex = textTexture('⛓ Задержан', { w: 512, h: 128, bg: '#1f9d55', fg: '#ffffff', font: 'bold 64px Nunito, sans-serif', radius: 40 });
+    const tex = textTexture('⛓ Задержан', { w: 512, h: 128, bg: '#1f9d55', fg: '#ffffff', font: 'bold 64px Inter, sans-serif', radius: 40 });
     r.tag.material.map = tex;
     r.tag.material.needsUpdate = true;
     if (fresh) r.stars = 2.5;

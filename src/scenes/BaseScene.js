@@ -54,13 +54,34 @@ export class BaseScene {
 
   // ---------- построение ----------
   setupLights({ sky = '#8fd3ff', fog = null, sun = true, hemi = 0.9, shadowSize = 30, sunPos = [30, 50, 20], ambient = 0 } = {}) {
-    this.scene.background = new THREE.Color(sky);
-    if (fog) this.scene.fog = new THREE.Fog(sky, fog[0], fog[1]);
-    const h = new THREE.HemisphereLight('#ffffff', '#8a7f6a', hemi);
+    const outdoor = !!fog;
+    // спокойная «взрослая» палитра неба
+    const top = new THREE.Color(outdoor ? '#5f86b3' : '#c9d3dc');
+    const horizon = new THREE.Color(outdoor ? '#c8d6e2' : '#dfe5ea');
+    this.scene.background = horizon.clone();
+    if (fog) this.scene.fog = new THREE.Fog(horizon, fog[0], fog[1]);
+    if (outdoor) {
+      // небесный купол с градиентом
+      const geo = new THREE.SphereGeometry(200, 24, 12);
+      const cols = [];
+      const p = geo.attributes.position;
+      for (let i = 0; i < p.count; i++) {
+        const t = Math.max(0, p.getY(i) / 200);
+        const c = horizon.clone().lerp(top, Math.pow(t, 0.6));
+        cols.push(c.r, c.g, c.b);
+      }
+      geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
+      const dome = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+      dome.renderOrder = -10;
+      dome.frustumCulled = false;
+      this.skyDome = dome;
+      this.scene.add(dome);
+    }
+    const h = new THREE.HemisphereLight(outdoor ? '#dce8f5' : '#ffffff', '#6f6656', hemi * 0.9);
     this.scene.add(h);
-    if (ambient) this.scene.add(new THREE.AmbientLight('#ffffff', ambient));
+    if (ambient) this.scene.add(new THREE.AmbientLight('#ffffff', ambient * 0.8));
     if (sun) {
-      const d = new THREE.DirectionalLight('#fff4e0', 1.6);
+      const d = new THREE.DirectionalLight('#ffe9cf', 2.1);
       d.position.set(...sunPos);
       d.castShadow = this.game.quality === 'high';
       d.shadow.mapSize.set(2048, 2048);
@@ -244,6 +265,7 @@ export class BaseScene {
 
   update(dt) {
     for (const u of this.updaters) u(dt);
+    if (this.skyDome) this.skyDome.position.copy((this.camera || this.game.camera).position);
     if (this.sun && this.game.player) {
       const p = this.game.player.pos;
       this.sun.position.set(p.x + this.sunOffset.x, p.y + this.sunOffset.y, p.z + this.sunOffset.z);

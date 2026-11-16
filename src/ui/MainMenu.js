@@ -19,7 +19,7 @@ export class MainMenu {
     const playBtn = btn(has ? `▶ Продолжить · день ${save.progress.day}` : '▶ Играть', 'green', () => (save.data.gradeChosen ? g.startGame() : openGradePicker(g, () => g.startGame())));
     const items = [playBtn];
     if (has) {
-      items.push(btn('🔄 Начать день заново', 'blue', () => {
+      items.push(btn('Начать день заново', 'blue', () => {
         save.data.progress.done = [];
         save.data.progress.scene = 'home';
         save.data.progress.spawn = 'start';
@@ -30,25 +30,25 @@ export class MainMenu {
       }));
     }
     items.push(
-      btn(`🎓 Класс: ${save.data.grade} (сменить)`, 'blue', () => openGradePicker(g, () => this.show())),
-      btn('🛍️ Магазин', 'yellow', () => g.shop.open(() => g.menuScene.refreshLook())),
-      btn('📒 Дневник', 'white', () => openDiary(g)),
-      btn('📊 Информация', 'white', () => openAdmin(g)),
-      btn('⚙️ Настройки', 'white', () => openSettings(g)),
-      btn('🚪 Выход', 'red', () => this.exit()),
+      btn(`Класс: ${save.data.grade} — сменить`, 'blue', () => openGradePicker(g, () => this.show())),
+      btn('Магазин', 'yellow', () => g.shop.open(() => g.menuScene.refreshLook())),
+      btn('Дневник', 'white', () => openDiary(g)),
+      btn('Информация', 'white', () => openAdmin(g)),
+      btn('Настройки', 'white', () => openSettings(g)),
+      btn('Выход', 'red', () => this.exit()),
     );
     this.coins = h('span', {}, save.data.coins);
     this.el = h('div', {},
       h('div', { class: 'main-menu' },
         h('div', { class: 'left' },
           h('div', { class: 'logo', html: 'READ<span class="amp">&amp;</span><br><span class="p">PRACTICE</span>' }),
-          h('div', { class: 'tagline' }, 'Читай 📖 · Практикуй ✏️ · Побеждай 🏆'),
+          h('div', { class: 'tagline' }, 'Читай · Практикуй · Побеждай'),
           ...items)),
       h('div', { class: 'menu-top' },
-        h('div', { class: 'chip' }, '🪙 ', this.coins),
-        h('div', { class: 'chip' }, `⭐ Ур. ${save.data.level}`),
-        h('div', { class: 'chip' }, `🏅 ${Object.keys(save.data.achievements).length}`)),
-      h('div', { class: 'menu-hint' }, g.input.isTouch ? '📱 Сенсорное управление включено' : '🎧 Звук включится после первого клика'));
+        h('div', { class: 'chip' }, 'Монеты ', this.coins),
+        h('div', { class: 'chip' }, `Уровень ${save.data.level}`),
+        h('div', { class: 'chip' }, `Награды ${Object.keys(save.data.achievements).length}`)),
+      h('div', { class: 'menu-hint' }, g.input.isTouch ? 'Сенсорное управление включено' : 'Звук включится после первого клика'));
     g.ui.root.append(this.el);
   }
 
@@ -61,10 +61,9 @@ export class MainMenu {
     const g = this.game;
     g.save.save();
     const el = h('div', { class: 'goodbye' },
-      h('div', { style: { fontSize: '90px' } }, '👋'),
-      h('h1', {}, 'До встречи!'),
-      h('div', { style: { fontSize: '20px', fontWeight: 800 } }, 'Твой прогресс сохранён. Возвращайся учиться и играть!'),
-      h('button', { class: 'btn yellow big', onclick: () => el.remove() }, '↩ Вернуться в меню'));
+            h('h1', {}, 'До встречи!'),
+      h('div', { style: { fontSize: '20px', fontWeight: 500, opacity: 0.8 } }, 'Прогресс сохранён.'),
+      h('button', { class: 'btn yellow big', onclick: () => el.remove() }, 'Вернуться в меню'));
     g.ui.root.append(el);
     try { window.close(); } catch (_) { /* браузер может запретить закрытие вкладки */ }
   }

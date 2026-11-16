@@ -1,5 +1,15 @@
 import * as THREE from 'three';
 
+// Общая цветокоррекция кадра: чуть приглушённые цвета и мягкий контраст («кино», а не мультфильм)
+if (!THREE.ShaderChunk.tonemapping_fragment.includes('GRADE')) {
+  THREE.ShaderChunk.tonemapping_fragment += `
+  // GRADE
+  { float l = dot(gl_FragColor.rgb, vec3(0.2126, 0.7152, 0.0722));
+    gl_FragColor.rgb = mix(vec3(l), gl_FragColor.rgb, 0.8);
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, gl_FragColor.rgb * gl_FragColor.rgb * (3.0 - 2.0 * gl_FragColor.rgb), 0.25); }
+`;
+}
+
 // Общий кэш материалов — низкополигональный flat‑стиль
 const cache = new Map();
 export function mat(color, opts = {}) {
@@ -9,9 +19,11 @@ export function mat(color, opts = {}) {
     const { emissive, transparent, opacity, basic, side } = opts;
     m = basic
       ? new THREE.MeshBasicMaterial({ color, transparent: !!transparent, opacity: opacity ?? 1, side: side ?? THREE.FrontSide })
-      : new THREE.MeshLambertMaterial({
+      : new THREE.MeshStandardMaterial({
           color,
           flatShading: true,
+          roughness: 0.82,
+          metalness: 0,
           emissive: emissive || 0x000000,
           transparent: !!transparent,
           opacity: opacity ?? 1,
@@ -41,7 +53,7 @@ export function roundRect(ctx, x, y, w, h, r) {
 
 // Текстура с надписью (таблички, доски, вывески)
 export function textTexture(lines, o = {}) {
-  const { w = 512, h = 256, bg = '#ffffff', fg = '#2d3436', font = 'bold 72px Nunito, Arial, sans-serif', radius = 24, border = null, sub = null } = o;
+  const { w = 512, h = 256, bg = '#ffffff', fg = '#2d3436', font = '600 72px Inter, Segoe UI, Arial, sans-serif', radius = 24, border = null, sub = null } = o;
   const c = document.createElement('canvas');
   c.width = w;
   c.height = h;
@@ -78,7 +90,7 @@ export function textTexture(lines, o = {}) {
 export function textPlane(lines, width, height, o = {}) {
   const res = o.res || 1;
   const H = Math.round(512 * res);
-  const font = (o.font || 'bold 250px Nunito, Arial, sans-serif').replace(/(\d+)px/, (m, n) => Math.round(n * res) + 'px');
+  const font = (o.font || 'bold 250px Inter, Arial, sans-serif').replace(/(\d+)px/, (m, n) => Math.round(n * res) + 'px');
   const tex = textTexture(lines, { w: Math.min(2048, Math.round(H * (width / height))), radius: Math.round(24 * res), ...o, h: H, font });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(width, height), new THREE.MeshBasicMaterial({ map: tex, transparent: true }));
   return m;

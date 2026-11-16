@@ -269,7 +269,7 @@ export function npc(s, { x, y = 0, z, yaw = 0, look, name, avatar = '🙂', line
       else if (onTalk) onTalk();
     },
   });
-  s.label([x, y + 2.3, z], name, { maxDist: 10, cls: 'npc' });
+  s.label([x, y + 2.05, z], name, { maxDist: 10, cls: 'npc' });
   return model;
 }
 
