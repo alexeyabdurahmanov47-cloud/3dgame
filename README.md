@@ -134,6 +134,7 @@ npm run preview
 |---|---|
 | `blender/character.py` → `public/models/character.glb` | персонаж со скелетом из 16 костей (колени, локти, кисти, стопы) и 8 анимациями: Idle, Walk, Run, Jump, Sit, Wave, Cheer, Push |
 | `blender/animals.py` → `public/models/dog.glb`, `cat.glb` | собака и кот с анимациями Idle, Walk, Happy |
+| `blender/props.py` → `public/models/props.glb` | окружение: деревья, кусты, скамейки, фонари, фонтан, машины (в т.ч. полицейские), парты, стулья, учительский стол, кровать, диван, шкаф, холодильник, телевизор, жилые дома и школа |
 | `blender/common.py` | общие функции: примитивы, материалы, скелет, ключевые кадры, экспорт |
 
 В игре модели загружает `src/core/Assets.js`, а `src/player/CharacterModel.js` перекрашивает материалы `Skin/Body/Pants/Shoes/Hair` под образ из магазина, крепит аксессуары к костям и плавно переключает анимации (кроссфейд).
@@ -144,7 +145,7 @@ npm run preview
 python3 -m venv .blender && .blender/bin/pip install bpy==5.2.4
 ```
 ```bash
-.blender/bin/python blender/character.py && .blender/bin/python blender/animals.py
+.blender/bin/python blender/character.py && .blender/bin/python blender/animals.py && .blender/bin/python blender/props.py
 ```
 
 ## 🗂️ Структура проекта

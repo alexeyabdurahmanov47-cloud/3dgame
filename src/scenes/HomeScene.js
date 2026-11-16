@@ -71,8 +71,9 @@ export class HomeScene extends BaseScene {
     this.label([3.5, 2.2, -5.3], '🪜 Лестница', { maxDist: 9 });
 
     // ---------- кухня ----------
-    this.box(-7.4, 0, -5.2, 1, 2.1, 1, '#f5f6fa', { collide: true }); // холодильник
-    this.box(-6.86, 1.2, -5.2, 0.05, 0.5, 0.08, '#b2bec3');
+    // холодильник (модель из Blender)
+    if (this.prop('fridge', -7.4, 0, -5.2, { ry: Math.PI / 2 })) this.world.addBox(-7.9, -6.9, 0, 2.1, -5.7, -4.7);
+    else { this.box(-7.4, 0, -5.2, 1, 2.1, 1, '#f5f6fa', { collide: true }); this.box(-6.86, 1.2, -5.2, 0.05, 0.5, 0.08, '#b2bec3'); }
     for (let x = -6.3; x < -2; x += 1) this.box(x + 0.5, 0, -5.55, 1, 0.9, 0.8, '#74b9ff', { collide: true });
     this.box(-3.8, 0.9, -5.55, 5.1, 0.06, 0.85, '#dfe6e9');
     this.box(-5.3, 0.96, -5.55, 0.9, 0.04, 0.6, '#2d3436'); // плита
@@ -124,15 +125,21 @@ export class HomeScene extends BaseScene {
     });
 
     // ---------- гостиная ----------
-    this.box(5, 0, -0.5, 3, 0.5, 1.1, '#6c5ce7', { collide: true }); // диван
-    this.box(5, 0.5, -0.95, 3, 0.6, 0.25, '#5f4dd6');
-    this.box(3.6, 0.5, -0.5, 0.25, 0.3, 1.1, '#5f4dd6');
-    this.box(6.4, 0.5, -0.5, 0.25, 0.3, 1.1, '#5f4dd6');
+    if (this.prop('sofa', 5, 0, -0.5)) this.world.addBox(3.5, 6.5, 0, 0.9, -1.05, 0.05); // диван
+    else {
+      this.box(5, 0, -0.5, 3, 0.5, 1.1, '#6c5ce7', { collide: true });
+      this.box(5, 0.5, -0.95, 3, 0.6, 0.25, '#5f4dd6');
+      this.box(3.6, 0.5, -0.5, 0.25, 0.3, 1.1, '#5f4dd6');
+      this.box(6.4, 0.5, -0.5, 0.25, 0.3, 1.1, '#5f4dd6');
+    }
     this.box(5, 0, 1.2, 1.6, 0.4, 0.8, '#b07d4f', { collide: true }); // столик
     this.box(5, 0.01, 0.6, 3.6, 0.02, 2.6, '#ffeaa7', { cast: false }); // ковёр
-    this.box(7.85, 0.9, 1.2, 0.1, 1, 1.8, '#2d3436'); // телевизор
-    this.box(7.8, 0.95, 1.2, 0.05, 0.9, 1.7, '#0984e3', { emissive: '#05427a' });
-    this.box(7.6, 0, 1.2, 0.5, 0.5, 2, '#b07d4f', { collide: true });
+    if (this.prop('tv', 7.6, 0, 1.2, { ry: -Math.PI / 2 })) this.world.addBox(7.35, 7.85, 0, 0.5, 0.2, 2.2); // телевизор
+    else {
+      this.box(7.85, 0.9, 1.2, 0.1, 1, 1.8, '#2d3436');
+      this.box(7.8, 0.95, 1.2, 0.05, 0.9, 1.7, '#0984e3', { emissive: '#05427a' });
+      this.box(7.6, 0, 1.2, 0.5, 0.5, 2, '#b07d4f', { collide: true });
+    }
     plant(this, 7.3, 0, 5.3);
     plant(this, -0.4, 0, 5.3, 0.8);
     this.box(6.8, 0, 5.6, 1, 0.5, 0.45, '#8d5524', { collide: true }); // обувница
@@ -166,10 +173,13 @@ export class HomeScene extends BaseScene {
 
     // ---------- спальня (наверху) ----------
     this.layer('up');
-    this.box(-6.6, UP, 4, 2.2, 0.45, 3.2, '#c8925a', { collide: true });
-    this.box(-6.6, UP + 0.45, 4, 2, 0.25, 3, '#ffffff');
-    this.box(-6.6, UP + 0.7, 4.6, 2.05, 0.1, 1.9, '#6c5ce7');
-    this.box(-6.6, UP + 0.7, 2.9, 1.2, 0.18, 0.5, '#ffffff');
+    if (this.prop('bed', -6.6, UP, 4, { ry: Math.PI })) this.box(-6.6, UP, 4, 2.2, 0.45, 3.2, '#c8925a', { collide: true, invisible: true });
+    else {
+      this.box(-6.6, UP, 4, 2.2, 0.45, 3.2, '#c8925a', { collide: true });
+      this.box(-6.6, UP + 0.45, 4, 2, 0.25, 3, '#ffffff');
+      this.box(-6.6, UP + 0.7, 4.6, 2.05, 0.1, 1.9, '#6c5ce7');
+      this.box(-6.6, UP + 0.7, 2.9, 1.2, 0.18, 0.5, '#ffffff');
+    }
     this.box(-5.1, UP, 5.4, 0.7, 0.6, 0.7, '#b07d4f', { collide: true }); // тумбочка
     // будильник
     const alarm = new THREE.Group();
@@ -194,10 +204,13 @@ export class HomeScene extends BaseScene {
       action: () => { alarmOn = false; flags.alarmOff = true; alarm.rotation.z = 0; g.ui.toast('⏰ Будильник выключен. Доброе утро!'); },
     });
     // шкаф
-    this.box(-7.5, UP, -2.5, 0.9, 2.4, 2, '#b07d4f', { collide: true });
-    this.box(-7.03, UP + 0.1, -2.5, 0.05, 2.2, 0.04, '#7a5230');
-    this.box(-7.02, UP + 1.2, -2.2, 0.05, 0.15, 0.06, '#f9ca24');
-    this.box(-7.02, UP + 1.2, -2.8, 0.05, 0.15, 0.06, '#f9ca24');
+    if (this.prop('wardrobe', -7.5, UP, -2.5, { ry: Math.PI })) this.box(-7.5, UP, -2.5, 0.9, 2.4, 2, '#b07d4f', { collide: true, invisible: true });
+    else {
+      this.box(-7.5, UP, -2.5, 0.9, 2.4, 2, '#b07d4f', { collide: true });
+      this.box(-7.03, UP + 0.1, -2.5, 0.05, 2.2, 0.04, '#7a5230');
+      this.box(-7.02, UP + 1.2, -2.2, 0.05, 0.15, 0.06, '#f9ca24');
+      this.box(-7.02, UP + 1.2, -2.8, 0.05, 0.15, 0.06, '#f9ca24');
+    }
     this.point('wardrobe', -6.6, UP, -2.5);
     this.label([-7.2, UP + 2.8, -2.5], '👕 Шкаф с одеждой', { maxDist: 9 });
     this.interact({

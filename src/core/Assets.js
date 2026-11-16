@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 // Модели, созданные в Blender 5.2 (скрипты в папке blender/) и экспортированные в public/models/*.glb
-const FILES = { character: 'models/character.glb', dog: 'models/dog.glb', cat: 'models/cat.glb' };
+const FILES = { character: 'models/character.glb', dog: 'models/dog.glb', cat: 'models/cat.glb', props: 'models/props.glb' };
 
 export const Assets = {
   gltf: {},
@@ -16,6 +16,26 @@ export const Assets = {
         g.scene.traverse((o) => { if (o.geometry) o.geometry.userData.shared = true; if (o.material) o.material.userData.shared = true; });
         this.gltf[n] = g; done++; onProgress && onProgress(done / names.length); res(); }, undefined, rej);
     })));
+  },
+  // Узел окружения из props.glb (дерево, машина, парта, здание…)
+  prop(name) {
+    const g = this.gltf.props;
+    if (!g) return null;
+    if (!this._props) { g.scene.updateMatrixWorld(true); this._props = {}; g.scene.children.forEach((c) => (this._props[c.name] = c)); }
+    return this._props[name] || null;
+  },
+  // Отдельная копия объекта окружения (для движущихся машин). colors: { ИмяМатериала: '#hex' }
+  propClone(name, colors = {}) {
+    const src = this.prop(name);
+    const o = src.clone(true);
+    o.position.set(0, 0, 0);
+    o.rotation.set(0, 0, 0);
+    o.traverse((m) => {
+      if (!m.isMesh) return;
+      m.castShadow = true;
+      if (colors[m.material.name]) { m.material = m.material.clone(); m.material.userData = { own: true }; m.material.color.set(colors[m.material.name]); }
+    });
+    return o;
   },
   // Независимая копия модели со своим скелетом и анимациями
   instance(name) {

@@ -1,3 +1,4 @@
+import { Assets } from '../core/Assets.js';
 import * as THREE from 'three';
 import { BaseScene } from './BaseScene.js';
 import { tree, bush, flowers, bench, lamp, fence, house, signpost, groundArrow, signText, cloud, GEO } from './props.js';
@@ -258,12 +259,14 @@ export class StreetScene extends BaseScene {
   }
 
   staticCar(x, z, color) {
+    if (this.prop('car', x, 0, z, { ry: Math.PI / 2, colors: { Paint: color } })) { this.world.addBox(x - 0.95, x + 0.95, 0, 1.7, z - 2, z + 2); return; }
     this.box(x, 0.3, z, 4, 0.8, 1.9, color, { collide: true, rotY: Math.PI / 2 });
     this.box(x, 0, z, 1.9, 0.3, 4, '#2d3436', { cast: false });
     this.geo(GEO.box, '#bfe9ff', x, 1.4, z, { sx: 1.7, sy: 0.6, sz: 2.2 });
   }
 
   makeCarMesh(color) {
+    if (Assets.prop('car')) return Assets.propClone('car', { Paint: color });
     const grp = new THREE.Group();
     const body = new THREE.Mesh(new THREE.BoxGeometry(4, 0.8, 1.9), mat(color));
     body.position.y = 0.75;
@@ -428,10 +431,12 @@ export class StreetScene extends BaseScene {
 
   fountain(x, z) {
     const g = this.game;
+    if (!this.prop('fountain', x, 0, z)) {
     this.geo(GEO.cyl12, '#b2bec3', x, 0.3, z, { sx: 3.2, sy: 0.6, sz: 3.2 });
     this.geo(GEO.cyl12, '#74b9ff', x, 0.62, z, { sx: 2.9, sy: 0.05, sz: 2.9, emissive: '#1d5e9a', cast: false });
     this.geo(GEO.cyl, '#dfe6e9', x, 1.2, z, { sx: 0.35, sy: 1.6, sz: 0.35 });
     this.geo(GEO.cyl12, '#b2bec3', x, 2.0, z, { sx: 1.1, sy: 0.2, sz: 1.1 });
+    }
     this.world.addBox(x - 3, x + 3, 0, 0.9, z - 3, z + 3, { camera: false });
     this.mapRects.push({ x, z, w: 6.4, d: 6.4, color: '#74b9ff', round: true, y0: 0 });
     const drops = [];
@@ -543,8 +548,8 @@ export class StreetScene extends BaseScene {
       car.add(stripe);
       const red = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.5), mat('#ff3b30'));
       const blue = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.5), mat('#3fa7ff'));
-      red.position.set(-0.2, 1.92, -0.4);
-      blue.position.set(-0.2, 1.92, 0.4);
+      red.position.set(-0.25, 1.74, -0.4);
+      blue.position.set(-0.25, 1.74, 0.4);
       car.add(red, blue);
       const txt = signText(this, 'ПОЛИЦИЯ', 0, 0, 0, 2.2, 0.4, 0, { bg: null, fg: '#0c2461', res: 0.4 });
       txt.removeFromParent();

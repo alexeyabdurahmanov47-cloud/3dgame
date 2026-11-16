@@ -257,7 +257,8 @@ export class SchoolScene extends BaseScene {
     board.rotation.y = rot;
     this.addObj(board);
     // учитель и его стол
-    this.box(cx - 3, 0, Z(1.6), 1.6, 0.8, 0.8, '#b07d4f', { collide: true });
+    if (this.prop('teacher_desk', cx - 3, 0, Z(1.6), { ry: rot + Math.PI })) this.box(cx - 3, 0, Z(1.6), 1.6, 0.8, 0.8, '#b07d4f', { collide: true, invisible: true });
+    else this.box(cx - 3, 0, Z(1.6), 1.6, 0.8, 0.8, '#b07d4f', { collide: true });
     const teacher = npc(this, {
       x: cx + 1.8, z: Z(1.4), yaw: rot, name: L.teacher, avatar: L.teacherAvatar,
       look: npcLook(L.color, '#2d3436', '#5d4037', { shape: 'tall', acc: { glasses: { model: 'round', color: '#2d3436' } } }),

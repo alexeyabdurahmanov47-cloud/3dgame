@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { World } from '../core/World.js';
 import { mat, disposeObject } from '../core/gfx.js';
+import { Assets } from '../core/Assets.js';
 
 // Базовый класс локации. Статическая геометрия объединяется (батчится) по цвету,
 // чтобы сократить число draw calls и держать 60 FPS.
@@ -75,9 +76,11 @@ export class BaseScene {
 
   // Прямоугольный блок. x,z — центр; y — низ.
   box(x, y, z, w, h, d, color, o = {}) {
-    const { collide = false, walk = false, map = null, cast = true, dynamic = false, rotY = 0, emissive = null, cam = true, parent = null } = o;
+    const { collide = false, walk = false, map = null, cast = true, dynamic = false, rotY = 0, emissive = null, cam = true, parent = null, invisible = false } = o;
     let m = null;
-    if (dynamic) {
+    if (invisible) {
+      // только коллайдер (визуал — модель из Blender)
+    } else if (dynamic) {
       m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat(color, emissive ? { emissive } : {}));
       m.position.set(x, y + h / 2, z);
       m.rotation.y = rotY;
@@ -164,6 +167,26 @@ export class BaseScene {
     const key = `${color}|${cast}|${emissive || ''}|${this.curLayer || ''}`;
     if (!this.batches.has(key)) this.batches.set(key, { color, cast, emissive, geos: [], layer: this.curLayer });
     this.batches.get(key).geos.push(geo);
+  }
+
+  // Модель окружения из Blender (props.glb), «запекается» в статические батчи по цвету.
+  // opts: ry — поворот, s — масштаб (число или [x,y,z]), colors — перекраска материалов по имени
+  prop(name, x, y, z, { ry = 0, s = 1, colors = {}, cast = true } = {}) {
+    const node = Assets.prop(name);
+    if (!node) return false;
+    const sc = Array.isArray(s) ? new THREE.Vector3(...s) : new THREE.Vector3(s, s, s);
+    const place = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), sc);
+    const inv = new THREE.Matrix4().copy(node.matrixWorld).invert();
+    node.traverse((m) => {
+      if (!m.isMesh) return;
+      const geo = m.geometry.clone();
+      geo.applyMatrix4(new THREE.Matrix4().multiplyMatrices(place, new THREE.Matrix4().multiplyMatrices(inv, m.matrixWorld)));
+      const mt = m.material;
+      const color = colors[mt.name] || '#' + mt.color.getHexString();
+      const em = mt.emissive && (mt.emissive.r + mt.emissive.g + mt.emissive.b) > 0.01 ? '#' + mt.emissive.getHexString() : null;
+      this.addStatic(geo, color, cast, em);
+    });
+    return true;
   }
 
   // Произвольная статическая геометрия с трансформацией

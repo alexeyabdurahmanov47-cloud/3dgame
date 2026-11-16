@@ -17,9 +17,15 @@ const TREE_COLORS = ['#3cb371', '#2ecc71', '#27ae60', '#7bc043', '#55a630'];
 const FLOWER_COLORS = ['#ff6b6b', '#feca57', '#ff9ff3', '#ffffff', '#a29bfe', '#ff9f43'];
 
 export function tree(s, x, z, sc = 1, kind = 'round', y = 0, rnd = Math.random) {
+  const c = TREE_COLORS[Math.floor(rnd() * TREE_COLORS.length)];
+  // Модель из Blender (props.glb); если не загрузилась — простая геометрия
+  if (s.prop(kind === 'pine' ? 'tree_pine' : 'tree_round', x, y, z, { s: sc * 1.1, ry: rnd() * Math.PI * 2, colors: kind === 'pine' ? {} : { Leaves: c } })) {
+    s.world.addBox(x - 0.25 * sc, x + 0.25 * sc, y, y + 3, z - 0.25 * sc, z + 0.25 * sc, { camera: false });
+    s.mapRects.push({ x, z, w: 1.6 * sc, d: 1.6 * sc, color: '#2e8b57', y, round: true });
+    return;
+  }
   const h = 1.4 * sc;
   s.geo(G.trunk, '#8d5524', x, y + h / 2, z, { sx: sc, sy: h, sz: sc });
-  const c = TREE_COLORS[Math.floor(rnd() * TREE_COLORS.length)];
   if (kind === 'pine') {
     for (let i = 0; i < 3; i++) s.geo(G.cone, '#1e8449', x, y + h + 0.6 * sc + i * 0.75 * sc, z, { sx: (1.5 - i * 0.35) * sc, sy: 1.4 * sc, sz: (1.5 - i * 0.35) * sc });
   } else {
@@ -31,6 +37,7 @@ export function tree(s, x, z, sc = 1, kind = 'round', y = 0, rnd = Math.random) 
 }
 
 export function bush(s, x, z, sc = 1, y = 0) {
+  if (s.prop('bush', x, y, z, { s: sc * 1.2, ry: x })) return;
   s.geo(G.crown, '#2ecc71', x, y + 0.4 * sc, z, { sx: 0.8 * sc, sy: 0.55 * sc, sz: 0.8 * sc, ry: x });
 }
 
@@ -47,6 +54,7 @@ export function bench(s, x, z, rotY = 0, y = 0) {
   const along = Math.abs(Math.sin(rotY)) > 0.5; // повернута на 90°
   const w = 1.8, d = 0.5;
   const W = along ? d : w, D = along ? w : d;
+  if (s.prop('bench', x, y, z, { ry: rotY })) { s.world.addBox(x - W / 2, x + W / 2, y, y + 0.9, z - D / 2, z + D / 2, { camera: false }); return; }
   s.box(x, y + 0.42, z, W, 0.08, D, '#c0763b');
   const bx = x - Math.sin(rotY) * 0.25, bz = z - Math.cos(rotY) * 0.25;
   s.box(bx, y + 0.5, bz, along ? 0.08 : w, 0.45, along ? w : 0.08, '#c0763b');
@@ -57,6 +65,7 @@ export function bench(s, x, z, rotY = 0, y = 0) {
 }
 
 export function lamp(s, x, z, y = 0) {
+  if (s.prop('lamp', x, y, z)) { s.world.addBox(x - 0.12, x + 0.12, y, y + 3.6, z - 0.12, z + 0.12, { camera: false }); return; }
   s.geo(G.cyl, '#3d3d3d', x, y + 1.8, z, { sx: 0.07, sy: 3.6, sz: 0.07 });
   s.geo(G.box, '#3d3d3d', x, y + 3.6, z, { sx: 0.5, sy: 0.12, sz: 0.5 });
   s.geo(G.sphere, '#fff7d6', x, y + 3.4, z, { sx: 0.22, sy: 0.22, sz: 0.22, emissive: '#d8c27a' });
@@ -102,6 +111,12 @@ export function plant(s, x, y, z, sc = 1) {
 
 // Парта со стулом. facing: +1 — ученик смотрит в +Z, -1 — в -Z
 export function desk(s, x, y, z, facing = 1, color = '#e8c18f') {
+  const cz0 = z - facing * 0.55;
+  if (s.prop('desk', x, y, z, { ry: facing > 0 ? 0 : Math.PI, colors: { Top: color } })) {
+    s.prop('chair', x, y, cz0, { ry: facing > 0 ? 0 : Math.PI });
+    s.world.addBox(x - 0.65, x + 0.65, y, y + 0.78, z - 0.3, z + 0.3, { camera: false });
+    return { seat: new THREE.Vector3(x, y, cz0) };
+  }
   s.box(x, y + 0.72, z, 1.3, 0.06, 0.6, color);
   for (const dx of [-0.58, 0.58]) s.box(x + dx, y, z, 0.06, 0.72, 0.5, '#7f8c8d');
   const cz = z - facing * 0.55;
@@ -165,6 +180,15 @@ export function groundArrow(s, x, y, z, dirX, dirZ) {
 }
 
 export function house(s, x, z, w, d, h, color, roof = '#c0392b', rnd = seeded(Math.round(x * 13 + z * 7))) {
+  let model = null;
+  if (w === 10 && d === 10 && [6, 9, 12].includes(h)) model = 'house_' + h;
+  else if (w === 24 && d === 16 && h === 12) model = 'home_block';
+  else if (w === 44 && d === 28 && h === 34) model = 'school';
+  if (model && s.prop(model, x, 0, z, { colors: { Wall: color, Roof: roof } })) {
+    s.world.addBox(x - w / 2, x + w / 2, 0, h, z - d / 2, z + d / 2, { camera: true, cam0: true });
+    s.mapRects.push({ x, z, w, d, color: '#b2bec3', y: h, y0: 0 });
+    return;
+  }
   s.box(x, 0, z, w, h, d, color, { collide: true, map: '#b2bec3' });
   s.geo(G.cone, roof, x, h + 1, z, { sx: Math.max(w, d) * 0.75, sy: 2, sz: Math.max(w, d) * 0.75, ry: Math.PI / 4 });
   const floors = Math.floor(h / 3);
