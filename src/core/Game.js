@@ -27,9 +27,11 @@ import { ElevatorScene } from '../scenes/ElevatorScene.js';
 import { StreetScene } from '../scenes/StreetScene.js';
 import { SchoolScene } from '../scenes/SchoolScene.js';
 import { fmtTime } from '../ui/dom.js';
+import { HorrorScene } from '../horror/HorrorScene.js';
+import { HorrorMode } from '../horror/HorrorMode.js';
 
-const SCENES = { home: HomeScene, hallway: HallwayScene, elevator: ElevatorScene, street: StreetScene, school: SchoolScene };
-const TITLES = { home: '🏠 Дом', hallway: '🚪 Подъезд', elevator: '🛗 Лифт', street: '🌳 Дорога в школу', school: '🏫 Школа' };
+const SCENES = { home: HomeScene, hallway: HallwayScene, elevator: ElevatorScene, street: StreetScene, school: SchoolScene, horror: HorrorScene };
+const TITLES = { horror: '🩸 Заброшенная школа', home: '🏠 Дом', hallway: '🚪 Подъезд', elevator: '🛗 Лифт', street: '🌳 Дорога в школу', school: '🏫 Школа' };
 
 export class Game {
   constructor() {
@@ -55,6 +57,7 @@ export class Game {
     this.lessons = new LessonManager();
     this.quests = new QuestManager(this);
     this.raid = new Raid(this);
+    this.horror = new HorrorMode(this);
     this.player = new Player(this);
     this.hud = new HUD(this);
     this.labels = new Labels(this);
@@ -163,8 +166,8 @@ export class Game {
   // ---------- внешний вид игрока ----------
   applyLook() {
     const f = this.save.progress.flags;
-    const pajamas = !f.dressed;
-    this.player.setLook(lookFromEquipped(this.save.data.equipped, { skinOverride: pajamas ? PAJAMAS : null, noBackpack: !f.backpack }));
+    const pajamas = !f.dressed && !this.horror.active;
+    this.player.setLook(lookFromEquipped(this.save.data.equipped, { skinOverride: pajamas ? PAJAMAS : null, noBackpack: !f.backpack || this.horror.active }));
   }
 
   // ---------- игра ----------
@@ -192,6 +195,7 @@ export class Game {
     this.paused = false;
     this.pauseMenu.close();
     this.lesson.abort();
+    if (this.horror.active) this.horror.end();
     this.ui.closeAllModals();
     if (this.ui.dialog.open) this.ui.dialog.close();
     if (this.scene) { this.scene.exit(); this.scene.dispose(); this.scene = null; }
@@ -236,8 +240,10 @@ export class Game {
     this.cam.snap(this.player.pos, sp.yaw + Math.PI);
     this.cam.pitch = 0.3;
     const prog = this.save.progress;
-    prog.scene = name;
-    prog.spawn = spawn;
+    if (!s.noSave) {
+      prog.scene = name;
+      prog.spawn = spawn;
+    }
     this.save.save();
     // прогрев шейдеров
     this.renderer.compile(s.scene, this.camera);
@@ -321,16 +327,19 @@ export class Game {
     const s = this.scene;
     const prog = this.save.progress;
     if (this.state === 'play' && !this.paused) {
-      if (!this.lesson.active) prog.clock += dt / CONFIG.clock.realSecondsPerGameMinute;
+      const hz = this.horror.active;
+      if (!this.lesson.active && !hz) prog.clock += dt / CONFIG.clock.realSecondsPerGameMinute;
       this.save.data.playSeconds += dt;
       this.player.update(dt, this.input, this.cam.yaw, s.world);
       s.update(dt);
       this.updateInteraction();
-      this.raid.update(dt);
+      if (hz) this.horror.update(dt);
+      else this.raid.update(dt);
       this.lesson.update(dt);
     }
-    this.hud._extraSub = this.raid.active() ? this.raid.extraSub() : this.quests.extraSub();
-    if (this.state === 'play') {
+    const hz = this.horror.active;
+    this.hud._extraSub = hz ? this.horror.subText() : this.raid.active() ? this.raid.extraSub() : this.quests.extraSub();
+    if (this.state === 'play' && !hz) {
       const alarm = this.raid.active();
       if (alarm) this.hud.setQuest(this.raid.questText(), '', '🚨');
       else if (this._alarm) this.quests.refresh();
@@ -339,8 +348,8 @@ export class Game {
     }
     this.cam.update(dt, this.player.pos, this.input.consumeLook(), s.world, this.save.settings);
     this.fx.update(dt);
-    const target = this.state === 'play' ? this.quests.target() : null;
-    this.updateMarker(target, dt);
+    const target = this.state === 'play' ? (hz ? this.horror.targetPoint() : this.quests.target()) : null;
+    this.updateMarker(hz && this.horror.diff.hints < 2 ? null : target, dt);
     if (this.state === 'play') this.hud.update(target);
     this.labels.update(this.camera);
     this.renderer.render(s.scene, this.camera);

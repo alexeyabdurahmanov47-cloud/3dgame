@@ -4,6 +4,8 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 // Модели, созданные в Blender 5.2 (скрипты в папке blender/) и экспортированные в public/models/*.glb
 const FILES = { character: 'models/character.glb', dog: 'models/dog.glb', cat: 'models/cat.glb', props: 'models/props.glb' };
+// Модели хоррор-режима — загружаются только при его запуске
+const EXTRA = { teacher: 'models/teacher.glb', shadow: 'models/shadow.glb', headmaster: 'models/headmaster.glb' };
 
 export const Assets = {
   gltf: {},
@@ -15,6 +17,15 @@ export const Assets = {
       loader.load(FILES[n], (g) => {
         g.scene.traverse((o) => { if (o.geometry) o.geometry.userData.shared = true; if (o.material) o.material.userData.shared = true; });
         this.gltf[n] = g; done++; onProgress && onProgress(done / names.length); res(); }, undefined, rej);
+    })));
+  },
+  async ensure(names) {
+    const loader = new GLTFLoader();
+    await Promise.all(names.filter((n) => !this.gltf[n]).map((n) => new Promise((res, rej) => {
+      loader.load(EXTRA[n], (g) => {
+        g.scene.traverse((o) => { if (o.geometry) o.geometry.userData.shared = true; if (o.material) o.material.userData.shared = true; });
+        this.gltf[n] = g; res();
+      }, undefined, rej);
     })));
   },
   // Узел окружения из props.glb (дерево, машина, парта, здание…)

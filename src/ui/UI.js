@@ -72,7 +72,7 @@ export class UI {
   }
 
   // Подсказка совёнка Сони. key — показать только один раз за игру.
-  tip(html, key = null, ms = 9000) {
+  tip(html, key = null, ms = 9000, who = 'Сова Соня') {
     const seen = this.game.save.data.seenTips;
     if (key) {
       if (seen[key]) return;
@@ -83,7 +83,7 @@ export class UI {
     const close = () => { el.remove(); if (this.tipEl === el) this.tipEl = null; };
     const el = h('div', { class: 'tip' },
       h('div', { class: 'owl' }, '🦉'),
-      h('div', { class: 'bubble', html: `<b>Сова Соня:</b> ${html}` }, h('button', { class: 'x', onclick: close }, '✕')));
+      h('div', { class: 'bubble', html: who ? `<b>${who}:</b> ${html}` : html }, h('button', { class: 'x', onclick: close }, '✕')));
     this.root.append(el);
     this.tipEl = el;
     this.game.audio.play('pop');

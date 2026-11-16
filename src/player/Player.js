@@ -43,8 +43,8 @@ export class Player {
     let wx = fx * ax.y + rx * ax.x;
     let wz = fz * ax.y + rz * ax.x;
     const mag = Math.min(1, Math.hypot(wx, wz));
-    const running = input.running();
-    const target = mag * (running ? P.runSpeed : P.walkSpeed);
+    const running = input.running() && this.canRun !== false;
+    const target = mag * (running ? P.runSpeed : P.walkSpeed) * (this.speedMul ?? 1);
     const l = Math.hypot(wx, wz);
     if (l > 0.01) {
       wx /= l;
@@ -70,6 +70,7 @@ export class Player {
     this.pos.y += this.velY * dt;
     const ground = world.groundAt(this.pos.x, this.pos.z, this.pos.y + 0.55);
     if (ground > -Infinity && this.pos.y <= ground) {
+      if (!this.onGround && this.velY < -3) this.justLanded = true;
       this.pos.y = ground;
       this.velY = 0;
       this.onGround = true;

@@ -12,13 +12,15 @@ export class Labels {
   setScene(scene) {
     this.root.innerHTML = '';
     this.list = scene ? scene.labels : [];
-    for (const l of this.list) {
-      l.el = document.createElement('div');
-      l.el.className = `label3d ${l.cls}`;
-      l.el.innerHTML = l.text;
-      l.el.style.display = 'none';
-      this.root.append(l.el);
-    }
+    for (const l of this.list) this.make(l);
+  }
+
+  make(l) {
+    l.el = document.createElement('div');
+    l.el.className = `label3d ${l.cls}`;
+    l.el.innerHTML = l.text;
+    l.el.style.display = 'none';
+    this.root.append(l.el);
   }
 
   update(camera) {
@@ -27,6 +29,7 @@ export class Labels {
     const W = innerWidth, H = innerHeight;
     const p = g.player.pos;
     for (const l of this.list) {
+      if (!l.el) this.make(l); // метки, добавленные после входа в локацию
       const d = camera.position.distanceTo(l.pos);
       const dy = l.pos.y - p.y;
       const vis = show && d < l.maxDist && dy > -0.3 && dy < 4.5 && l.visible();

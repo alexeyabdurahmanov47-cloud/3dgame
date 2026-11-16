@@ -495,6 +495,17 @@ export class CharacterModel {
     if (this.root.visible) {
       this.mixer.update(dt);
       if (this.headScale !== 1 && this.bones.head) this.bones.head.scale.setScalar(this.headScale);
+      // пригнувшись (хоррор-режим): поверх анимации сгибаем колени и спину
+      this.crouchK = (this.crouchK || 0) + ((this.crouch ? 1 : 0) - (this.crouchK || 0)) * Math.min(1, dt * 8);
+      const k = this.crouchK, B = this.bones;
+      if (k > 0.01 && B.hips) {
+        B.hips.position.y -= 0.2 * k;
+        B.spine.rotation.x += 0.45 * k;
+        B.head.rotation.x -= 0.3 * k;
+        B.thighL.rotation.x -= 0.9 * k; B.thighR.rotation.x -= 0.9 * k;
+        B.shinL.rotation.x += 1.3 * k; B.shinR.rotation.x += 1.3 * k;
+        B.footL.rotation.x -= 0.4 * k; B.footR.rotation.x -= 0.4 * k;
+      }
     }
     if (this.propeller) this.propeller.rotation.y += dt * (4 + speed * 30);
     if (this.cape) this.cape.rotation.x = 0.1 + speed * 0.6 + Math.sin(this.t * 6) * 0.05 * (0.3 + speed);

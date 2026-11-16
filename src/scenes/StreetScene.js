@@ -1,3 +1,4 @@
+import { h } from '../ui/dom.js';
 import { Assets } from '../core/Assets.js';
 import * as THREE from 'three';
 import { BaseScene } from './BaseScene.js';
@@ -378,11 +379,13 @@ export class StreetScene extends BaseScene {
       const stopLine = 3.3; // перед переходом (|x| = 2)
       const pos = -c.x * c.dir; // расстояние до центра перехода вдоль движения (>0 — переход впереди)
       const playerOnCross = Math.abs(p.x) < 3.5 && Math.abs(p.z - c.roadZ) < (nearCross ? 4.3 : 5.5);
-      const mustStop = nearCross ? (this.lightPhase >= 1 && this.lightPhase <= 3) || playerOnCross : playerOnCross || (Math.abs(p.x) < 4 && Math.abs(p.z - c.roadZ) < 7);
+      // нарушитель (вышел на красный) — водитель не ожидает пешехода и не успевает затормозить
+      const violator = nearCross && this.inCross && !this.crossOk;
+      const mustStop = nearCross ? (this.lightPhase >= 1 && this.lightPhase <= 3) || (playerOnCross && !violator) : playerOnCross || (Math.abs(p.x) < 4 && Math.abs(p.z - c.roadZ) < 7);
       if (mustStop && pos - 2 > stopLine - 0.4 && pos - 2 < 22) limit = Math.max(0, pos - 2 - stopLine);
       // игрок на дороге прямо перед машиной
       const ahead = (p.x - c.x) * c.dir;
-      if (Math.abs(p.z - c.z) < 1.8 && ahead > 0 && ahead < 9) {
+      if (Math.abs(p.z - c.z) < 1.8 && ahead > 0 && ahead < 9 && !violator) {
         limit = Math.min(limit, ahead - 3.2);
         c.honk -= dt;
         if (c.honk <= 0) { this.game.audio.play('horn'); c.honk = 3; this.game.ui.toast('🚗 Би‑бип! Не стой на дороге!', 'warn'); }
@@ -398,6 +401,8 @@ export class StreetScene extends BaseScene {
       c.x += c.speed * c.dir * dt;
       if (c.x * c.dir > 58) c.x = -58 * c.dir;
       c.m.position.x = c.x;
+      // наезд на пешехода, перебегающего на красный
+      if (violator && c.speed > 2.5 && Math.abs(p.z - c.z) < 1.35 && Math.abs(p.x - c.x) < 2.4) this.carHit(c);
       Object.assign(c.col, { minX: c.x - 2, maxX: c.x + 2, minY: 0, maxY: 1.8, minZ: c.z - 0.95, maxZ: c.z + 0.95 });
     }
   }
@@ -410,6 +415,7 @@ export class StreetScene extends BaseScene {
     const onCross = Math.abs(p.x) < 2.4;
     if (onRoad1 && onCross && !this.inCross) {
       this.inCross = true;
+      this.crossFrom = p.z < 35 ? -1 : 1;
       this.crossOk = this.pedGreen;
       if (!this.pedGreen) {
         g.ui.toast('🛑 Стой! Для пешеходов красный свет. Подожди зелёного!', 'warn', 3500);
@@ -420,6 +426,8 @@ export class StreetScene extends BaseScene {
       if (this.crossOk && (p.z >= 39 || p.z <= 31)) {
         if (g.achievements.unlock('road')) g.ui.tip('Ты перешёл дорогу на <b>зелёный</b> свет — так и надо! 👍');
       }
+      // перешёл на красный и повезло — регулировщик отчитывает и штрафует
+      if (!this.crossOk && !this.hitLock && (p.z >= 39 || p.z <= 31)) this.scold();
       this.inCross = false;
     }
     this.jayT = (this.jayT || 0) - 1 / 60;
@@ -427,6 +435,55 @@ export class StreetScene extends BaseScene {
       this.jayT = 5;
       g.ui.toast('⚠️ Переходи дорогу только по пешеходному переходу (зебре)!', 'warn', 3500);
     }
+  }
+
+  // Регулировщик ругает за переход на красный
+  scold() {
+    const g = this.game;
+    g.audio.play('wrong');
+    g.audio.tone(2600, 0.5, { type: 'square', vol: 0.06 });
+    g.save.addCoins(-10, 'fine');
+    g.save.stat('redLight');
+    g.save.log('rule', 'Перешёл дорогу на красный свет — штраф 10 монет');
+    g.ui.dialog.show([
+      { name: 'Регулировщик дядя Петя', avatar: '👮', text: 'Стоп! А ну-ка подойди. Ты только что перешёл дорогу на КРАСНЫЙ свет!' },
+      { name: 'Регулировщик дядя Петя', avatar: '👮', text: 'Водитель не ждал тебя на переходе и мог не успеть затормозить. Это не игра — так погибают люди.' },
+      { name: 'Регулировщик дядя Петя', avatar: '👮', text: 'Штраф — 10 монет. Запомни: переходим только на зелёный, и только по зебре. В следующий раз будь умнее.' },
+    ]);
+  }
+
+  // Машина сбила пешехода, перебегавшего на красный
+  carHit(c) {
+    if (this.hitLock) return;
+    this.hitLock = true;
+    const g = this.game;
+    c.speed = 0;
+    g.audio.play('horn');
+    g.audio.play('kick');
+    g.audio.noise(0.6, { vol: 0.4, freq: 300, q: 0.5, type: 'lowpass' });
+    g.cam.shake = 0.6;
+    g.player.frozen = true;
+    g.save.stat('carHits');
+    g.save.log('rule', 'Сбит машиной при переходе на красный свет');
+    const el = h('div', { class: 'overlay crash' },
+      h('div', { class: 'panel crash-card pop' },
+        h('div', { class: 'crash-ico' }, '🚑'),
+        h('h2', {}, 'ДТП. Ты погиб.'),
+        h('p', {}, 'Ты выбежал на дорогу на красный свет. Водитель ехал на зелёный и не успел затормозить.'),
+        h('p', { class: 'muted' }, 'В реальной жизни второго шанса нет. Переходи дорогу только на зелёный свет и только по пешеходному переходу.'),
+        h('button', { class: 'btn green', onclick: () => {
+          g.ui.closeModal('crash');
+          g.player.frozen = false;
+          const back = this.crossFrom > 0 ? 41.5 : 28.5;
+          const yaw = this.crossFrom > 0 ? Math.PI : 0;
+          g.player.place(0, 0, back, yaw);
+          g.cam.yaw = yaw + Math.PI;
+          this.inCross = false;
+          this.hitLock = false;
+          g.save.addCoins(-20, 'hospital');
+          g.ui.toast('🏥 Ты очнулся у перехода. Лечение стоило 20 монет. Жди зелёный!', 'warn', 5000);
+        } }, 'Попробовать снова — по правилам')));
+    setTimeout(() => g.ui.openModal('crash', el), 450);
   }
 
   fountain(x, z) {

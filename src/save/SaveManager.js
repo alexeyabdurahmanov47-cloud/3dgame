@@ -33,6 +33,8 @@ export function defaultSave() {
       labels: true,
     },
     progress: newDayProgress(1),
+    // хоррор-режим
+    horror: { done: {}, deaths: 0, diff: 'nightmare', last: null, gore: 'high', screamers: 'mid', flashSafe: false, ageOk: false, controlsSeen: false },
   };
 }
 

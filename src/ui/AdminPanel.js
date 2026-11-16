@@ -24,6 +24,8 @@ export const LOG_TYPES = {
   grade: { name: 'Классы', icon: '🎓', color: '#2d3436' },
   day: { name: 'Дни', icon: '📅', color: '#16a085' },
   session: { name: 'Входы в игру', icon: '▶️', color: '#636e72' },
+  horror: { name: 'Хоррор-режим', icon: '🩸', color: '#b01818' },
+  rule: { name: 'Нарушения ПДД', icon: '🚦', color: '#e17055' },
 };
 const MARK_COLOR = { 5: '#1f9d55', 4: '#2b7bd6', 3: '#d68910', 2: '#d64545' };
 const pad = (n) => String(n).padStart(2, '0');
