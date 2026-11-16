@@ -3,6 +3,7 @@ import { mat } from '../core/gfx.js';
 import { CONFIG } from '../config.js';
 import { CharacterModel, starGeometry } from '../player/CharacterModel.js';
 import { lookFromEquipped } from '../shop/items.js';
+import { animal } from '../core/Assets.js';
 
 // Динамические объекты: монеты, звёзды знаний, цветы, мяч, собака, NPC.
 
@@ -191,61 +192,34 @@ export function ball(s, x, y, z) {
 // Собака, гуляющая по парку
 export function dog(s, x, z, range = 6) {
   const g = s.game;
-  const grp = new THREE.Group();
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.3, 0.7), mat('#c68642'));
-  body.position.y = 0.45;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.3), mat('#c68642'));
-  head.position.set(0, 0.7, 0.42);
-  const snout = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 0.15), mat('#8d5524'));
-  snout.position.set(0, 0.64, 0.6);
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 0.03), mat('#111'));
-  nose.position.set(0, 0.68, 0.68);
-  const ears = [-1, 1].map((sd) => {
-    const e = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.16, 0.1), mat('#8d5524'));
-    e.position.set(sd * 0.15, 0.82, 0.38);
-    return e;
-  });
-  const eyes = [-1, 1].map((sd) => {
-    const e = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.02), mat('#111'));
-    e.position.set(sd * 0.08, 0.76, 0.575);
-    return e;
-  });
-  const tail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.3), mat('#c68642'));
-  tail.position.set(0, 0.6, -0.42);
-  tail.rotation.x = -0.6;
-  const legs = [[-0.12, 0.25], [0.12, 0.25], [-0.12, -0.25], [0.12, -0.25]].map(([lx, lz]) => {
-    const l = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.32, 0.09), mat('#8d5524'));
-    l.position.set(lx, 0.16, lz);
-    return l;
-  });
-  grp.add(body, head, snout, nose, tail, ...ears, ...eyes, ...legs);
-  grp.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+  // модель и анимации собаки — из Blender (public/models/dog.glb)
+  const d = animal('dog');
+  const grp = d.root;
   grp.position.set(x, 0, z);
   s.addObj(grp);
-  let target = new THREE.Vector3(x, 0, z), wait = 0, t = 0, happy = 0;
+  let target = new THREE.Vector3(x, 0, z), wait = 0, happy = 0;
   s.onUpdate((dt) => {
-    t += dt;
+    d.update(dt);
     const p = g.player.pos;
     const toP = Math.hypot(p.x - grp.position.x, p.z - grp.position.z);
-    if (happy > 0) { happy -= dt; tail.rotation.y = Math.sin(t * 30) * 0.7; grp.position.y = Math.abs(Math.sin(t * 10)) * 0.15; return; }
-    grp.position.y = 0;
-    if (toP < 2.2) { // смотрит на игрока
+    if (happy > 0) { happy -= dt; d.play('Happy'); return; }
+    if (toP < 2.2) { // смотрит на игрока и виляет хвостом
       grp.rotation.y = Math.atan2(p.x - grp.position.x, p.z - grp.position.z);
-      tail.rotation.y = Math.sin(t * 18) * 0.5;
+      d.play('Idle', 2);
       return;
     }
-    if (wait > 0) { wait -= dt; tail.rotation.y = Math.sin(t * 6) * 0.3; return; }
+    if (wait > 0) { wait -= dt; d.play('Idle'); return; }
     const dx = target.x - grp.position.x, dz = target.z - grp.position.z;
-    const d = Math.hypot(dx, dz);
-    if (d < 0.3) {
+    const dd = Math.hypot(dx, dz);
+    if (dd < 0.3) {
       target.set(x + (Math.random() - 0.5) * range * 2, 0, z + (Math.random() - 0.5) * range * 2);
       wait = 1 + Math.random() * 3;
       return;
     }
     grp.rotation.y = Math.atan2(dx, dz);
-    grp.position.x += (dx / d) * 1.6 * dt;
-    grp.position.z += (dz / d) * 1.6 * dt;
-    legs.forEach((l, i) => (l.rotation.x = Math.sin(t * 14 + (i % 2) * Math.PI) * 0.5));
+    grp.position.x += (dx / dd) * 1.6 * dt;
+    grp.position.z += (dz / dd) * 1.6 * dt;
+    d.play('Walk', 1.1);
   });
   const it = s.interact({
     pos: grp.position,

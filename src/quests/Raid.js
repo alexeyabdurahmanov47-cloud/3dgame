@@ -257,6 +257,7 @@ export class Raid {
       // столкновение с игроком — толкает
       if (dist < 0.85 && this.hitCool <= 0) {
         this.hitCool = 2.2;
+        r.model.push = 0.7;
         const k = 1.8 / (dist || 1);
         p.x += dx * k; p.z += dz * k;
         s.world.resolve(p, 0.32, 1.6);

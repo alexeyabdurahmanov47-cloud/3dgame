@@ -4,6 +4,7 @@ import { windowPane, plant, signText, GEO } from './props.js';
 import { coin, knowledgeStar, ball, npc, npcLook } from './entities.js';
 import { mat } from '../core/gfx.js';
 import { CharacterModel } from '../player/CharacterModel.js';
+import { animal } from '../core/Assets.js';
 import { itemById } from '../shop/items.js';
 
 // Квартира‑дуплекс (3–4 этаж дома). Внизу — кухня и гостиная, наверху — спальня и ванная.
@@ -297,33 +298,20 @@ export class HomeScene extends BaseScene {
 
   cat(x, y, z) {
     const g = this.game;
-    const grp = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.IcosahedronGeometry(0.25, 1), mat('#f39c12'));
-    body.scale.set(1, 0.7, 1.4);
-    const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.17, 1), mat('#f39c12'));
-    head.position.set(0, 0.12, 0.35);
-    [-1, 1].forEach((s) => {
-      const ear = new THREE.Mesh(new THREE.ConeGeometry(0.06, 0.12, 4), mat('#e67e22'));
-      ear.position.set(s * 0.09, 0.28, 0.35);
-      grp.add(ear);
-    });
-    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.5, 5), mat('#e67e22'));
-    tail.position.set(0.15, 0.05, -0.4);
-    tail.rotation.set(1.2, 0, 0.6);
-    grp.add(body, head, tail);
-    grp.position.set(x, y + 0.15, z);
-    grp.rotation.y = -0.6;
-    this.scene.add(grp);
-    let t = 0, purr = 0;
+    // кот Персик — модель и анимации из Blender (public/models/cat.glb)
+    const c = animal('cat');
+    c.root.position.set(x, y, z);
+    c.root.rotation.y = -0.6;
+    this.addObj(c.root);
+    let purr = 0;
     this.onUpdate((dt) => {
-      t += dt;
-      body.scale.y = 0.7 + Math.sin(t * 2) * 0.03;
-      if (purr > 0) { purr -= dt; grp.position.y = y + 0.15 + Math.abs(Math.sin(t * 12)) * 0.05; }
+      c.update(dt);
+      if (purr > 0) { purr -= dt; c.play('Happy'); } else c.play('Idle');
     });
     this.interact({
       pos: [x, y + 0.5, z], radius: 1.6, prompt: 'Погладить котика 🐱',
       action: () => {
-        purr = 1.5;
+        purr = 1.8;
         g.audio.play('pop');
         g.fx.burst(new THREE.Vector3(x, y + 0.6, z), '#ff6b81', 10, 'heart');
         g.ui.toast('🐱 Мурр-мурр! Котик Персик доволен.');

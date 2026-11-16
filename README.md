@@ -126,6 +126,27 @@ npm run preview
   нужно вернуться домой.
 - Вся музыка и звуки синтезируются через WebAudio, внешние аудиофайлы не нужны.
 
+## 🧍 3D-модели из Blender 5.2
+
+Все фигурки — персонаж (игрок, учителя, мама, полиция, грабители, заложники), собака и кот — созданы скриптами в **Blender 5.2** (`bpy`) и экспортированы в glTF:
+
+| Файл | Что внутри |
+|---|---|
+| `blender/character.py` → `public/models/character.glb` | персонаж со скелетом из 16 костей (колени, локти, кисти, стопы) и 8 анимациями: Idle, Walk, Run, Jump, Sit, Wave, Cheer, Push |
+| `blender/animals.py` → `public/models/dog.glb`, `cat.glb` | собака и кот с анимациями Idle, Walk, Happy |
+| `blender/common.py` | общие функции: примитивы, материалы, скелет, ключевые кадры, экспорт |
+
+В игре модели загружает `src/core/Assets.js`, а `src/player/CharacterModel.js` перекрашивает материалы `Skin/Body/Pants/Shoes/Hair` под образ из магазина, крепит аксессуары к костям и плавно переключает анимации (кроссфейд).
+
+Пересобрать модели (нужен Python 3.13):
+
+```bash
+python3 -m venv .blender && .blender/bin/pip install bpy==5.2.4
+```
+```bash
+.blender/bin/python blender/character.py && .blender/bin/python blender/animals.py
+```
+
 ## 🗂️ Структура проекта
 
 ```
