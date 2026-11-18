@@ -14,7 +14,7 @@ import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy, bmesh
 from mathutils import Vector
-from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend
+from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend, bake_ao
 
 OUTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'models')
 
@@ -80,11 +80,71 @@ def arm_pt(z, x):
     return (x * (EL[0] + (WR[0] - EL[0]) * t), 0, z)
 
 
+def dense(zs, vals, step=0.025):
+    """уплотняет кольца: линейная интерполяция значений между заданными высотами"""
+    oz, ov = [zs[0]], [vals[0]]
+    for k in range(len(zs) - 1):
+        n = max(1, int(abs(zs[k + 1] - zs[k]) / step))
+        for j in range(1, n + 1):
+            t = j / n
+            oz.append(zs[k] + (zs[k + 1] - zs[k]) * t)
+            a, b = vals[k], vals[k + 1]
+            ov.append(tuple(a[q] + (b[q] - a[q]) * t for q in range(len(a))) if isinstance(a, tuple) else a + (b - a) * t)
+    return oz, ov
+
+
+# ---------------------------------------------------------------- рельеф: мышцы и складки
+# Угол кольца lathe: 90° — спина (+Y), 270° — грудь/перед (−Y), 0°/180° — бока.
+FRONT, BACK = math.radians(270), math.radians(90)
+def bump(z, z0, w): return math.exp(-((z - z0) / w) ** 2)
+def side(a, d, p=1.5): return max(0.0, math.cos(a - d)) ** p
+def wrinkle(z, z0, w, amp, a, n=4):
+    """поперечные складки ткани у сгиба (локоть, колено, пояс)"""
+    return amp * bump(z, z0, w) * (math.sin(a * n + z * 22) * 0.75 + math.sin(a * (n + 2) - z * 14) * 0.25)
+def drape(z, top, hem, amp, a, n=9):
+    """вертикальные складки, растущие к подолу (юбка, пальто, плащ)"""
+    t = max(0.0, min(1.0, (top - z) / max(0.01, top - hem)))
+    return amp * t * (math.sin(a * n) * 0.6 + math.sin(a * n * 1.63 + 1.1) * 0.4)
+def arm_shape(x, cloth=False):
+    out = 0.0 if x > 0 else math.pi  # наружная сторона руки
+    def f(i, a, c):
+        z = c.z
+        m = 1.0
+        m += 0.11 * bump(z, 1.2, 0.06) * side(a, FRONT)       # бицепс
+        m += 0.07 * bump(z, 1.17, 0.07) * side(a, BACK)       # трицепс
+        m += 0.08 * bump(z, 1.3, 0.05) * side(a, out, 1.0)    # дельта
+        m += 0.07 * bump(z, 0.99, 0.05) * side(a, FRONT + (0.6 if x > 0 else -0.6))  # предплечье
+        if cloth: m += wrinkle(z, 1.07, 0.05, 0.05, a) + wrinkle(z, 0.9, 0.04, 0.03, a, 5)
+        return m
+    return f
+def leg_shape(cloth=False):
+    def f(i, a, c):
+        z = c.z
+        m = 1.0
+        m += 0.06 * bump(z, 0.7, 0.1) * side(a, FRONT)        # квадрицепс
+        m += 0.12 * bump(z, 0.33, 0.07) * side(a, BACK)       # икра
+        m -= 0.04 * bump(z, 0.47, 0.03) * side(a, FRONT)      # колено
+        if cloth: m += wrinkle(z, 0.47, 0.05, 0.06, a) + wrinkle(z, 0.14, 0.05, 0.05, a, 5) + wrinkle(z, 0.83, 0.04, 0.03, a, 6)
+        return m
+    return f
+def torso_shape(chest=0.05, folds=0.025):
+    def f(i, a, c):
+        z = c.z
+        m = 1.0
+        m += chest * bump(z, 1.22, 0.06) * (side(a, FRONT + 0.45, 2) + side(a, FRONT - 0.45, 2))  # грудные
+        m += 0.03 * bump(z, 1.22, 0.08) * side(a, BACK, 1)    # лопатки
+        m += abs(wrinkle(z, 0.97, 0.05, folds, a, 6)) + abs(drape(z, 1.0, 0.83, folds * 0.8, a, 7))
+        return m
+    return f
+
+
 # ---------------------------------------------------------------- части тела
 def torso(objs, M, mat='Body', bulk=1.0, chest_k=1.0, profile=None):
     prof = profile or [(0.83, 0.158, 0.11), (0.9, 0.153, 0.106), (0.97, 0.142, 0.098), (1.05, 0.146, 0.1), (1.13, 0.156, 0.106), (1.2, 0.166 * chest_k, 0.112 * chest_k),
-                       (1.27, 0.168, 0.11), (1.31, 0.158, 0.1), (1.34, 0.125, 0.078), (1.365, 0.07, 0.056)]
-    lathe(objs, 'torso', [((0, 0.004, z), rx * bulk, ry * bulk, torso_w(z)) for z, rx, ry in prof], M[mat], segs=28, cap0=False)
+                       (1.27, 0.17, 0.11), (1.31, 0.168, 0.102), (1.34, 0.148, 0.088), (1.36, 0.1, 0.066), (1.375, 0.066, 0.055)]
+    dz, dv = dense([p[0] for p in prof], [(p[1], p[2]) for p in prof], 0.02)
+    prof = [(z, v[0], v[1]) for z, v in zip(dz, dv)]
+    lathe(objs, 'torso', [((0, 0.004, z), rx * bulk, ry * bulk, torso_w(z)) for z, rx, ry in prof], M[mat], segs=40, cap0=False, shape=torso_shape())
 
 
 def pelvis(objs, M, mat='Pants', bulk=1.0):
@@ -99,14 +159,15 @@ def neck(objs, M, mat='Skin', r=0.042):
 
 def arms(objs, M, skin='Skin', sleeve='Body', sleeve_to=1.17, bulk=1.0, cuff=None):
     for s, x in (('L', 1), ('R', -1)):
-        zs = [1.345, 1.28, 1.2, 1.12, 1.06, 1.0, 0.94, 0.88, 0.845]
-        rs = [0.052, 0.05, 0.047, 0.042, 0.038, 0.037, 0.035, 0.031, 0.028]
-        lathe(objs, f'arm.{s}', [(arm_pt(z, x), r * bulk, r * 0.94 * bulk, arm_w(z, s)) for z, r in zip(zs, rs)], M[skin], segs=16)
+        zs = [1.325, 1.28, 1.2, 1.12, 1.06, 1.0, 0.94, 0.88, 0.845]
+        rs = [0.05, 0.05, 0.047, 0.042, 0.038, 0.037, 0.035, 0.031, 0.028]
+        zs, rs = dense(zs, rs, 0.022)
+        lathe(objs, f'arm.{s}', [(arm_pt(z, x), r * bulk, r * 0.94 * bulk, arm_w(z, s)) for z, r in zip(zs, rs)], M[skin], segs=22, shape=arm_shape(x, cloth=skin not in ('Skin',)))
         if sleeve and sleeve_to < 1.3:
-            sz = [z for z in [1.35, 1.3, 1.24, 1.18, 1.12, 1.06, 1.0, 0.94, 0.88] if z >= sleeve_to - 0.001]
+            sz = [z for z in dense([1.335, 0.88], [0, 0], 0.02)[0] if z >= sleeve_to - 0.001]
             if sz[-1] > sleeve_to: sz.append(sleeve_to)
-            ring = lambda z: 0.058 - (1.35 - z) * 0.03
-            lathe(objs, f'sleeve.{s}', [(arm_pt(z, x), ring(z) * bulk * (1.0 if z < 1.3 else 1.05), ring(z) * 0.95 * bulk, arm_w(z, s)) for z in sz], M[sleeve], segs=18, cap1=False)
+            ring = lambda z: 0.068 - (1.35 - z) * 0.045
+            lathe(objs, f'sleeve.{s}', [(arm_pt(z, x), ring(z) * bulk, ring(z) * 0.95 * bulk, arm_w(z, s)) for z in sz], M[sleeve], segs=24, cap1=False, shape=lambda i, a, c: 1 + abs(wrinkle(c.z, sleeve_to + 0.03, 0.04, 0.05, a, 5)) + 0.02 * math.sin(a * 3 + 1))
         if cuff:
             lathe(objs, f'cuff.{s}', [(arm_pt(z, x), 0.032 * bulk, 0.031 * bulk, arm_w(z, s)) for z in (0.885, 0.86, 0.84)], M[cuff], segs=16)
 
@@ -132,8 +193,9 @@ def legs(objs, M, mat='Pants', to=0.09, bulk=1.0, skin_below=None):
     for s, x in (('L', 1), ('R', -1)):
         zs = [0.9, 0.82, 0.72, 0.62, 0.53, 0.47, 0.41, 0.32, 0.22, 0.14, 0.09, 0.07]
         rs = [0.07, 0.068, 0.063, 0.057, 0.05, 0.046, 0.045, 0.043, 0.037, 0.033, 0.031, 0.03]
+        zs, rs = dense(zs, rs, 0.022)
         pts = [(z, r) for z, r in zip(zs, rs) if z >= to - 0.001]
-        lathe(objs, f'leg.{s}', [((LX * x, 0.004, z), r * bulk, r * 0.96 * bulk, leg_w(z, s)) for z, r in pts], M[mat], segs=18, cap0=False, cap1=skin_below is None)
+        lathe(objs, f'leg.{s}', [((LX * x, 0.004, z), r * bulk, r * 0.96 * bulk, leg_w(z, s)) for z, r in pts], M[mat], segs=24, cap0=False, cap1=skin_below is None, shape=leg_shape(cloth=mat != 'Skin'))
         if skin_below:
             sp = [(z, r * 0.9) for z, r in zip(zs, rs) if z <= to + 0.04]
             lathe(objs, f'shin_skin.{s}', [((LX * x, 0.004, z), r, r * 0.96, leg_w(z, s)) for z, r in sp], M[skin_below], segs=16, cap0=False)
@@ -200,17 +262,66 @@ def hair_shell(objs, M, mat='Hair', scale=(0.109, 0.119, 0.132), off=(0, 0.008, 
     return o
 
 
+HEAD_R = (0.1, 0.108, 0.126)
+
+
+def scalp(th, ph, k=1.0):
+    """точка на поверхности головы: th — от макушки (0) вниз, ph — вокруг (0 — перед)"""
+    return Vector((math.sin(th) * math.sin(ph) * HEAD_R[0] * k, 0.004 - math.sin(th) * math.cos(ph) * HEAD_R[1] * k, HC + math.cos(th) * HEAD_R[2] * k))
+
+
+def hair_strands(objs, M, mat='Hair', n=110, seed=3, fringe=True, length=0.55, lift=1.06, width=0.011, nape=1.9):
+    """Пряди: тонкие изогнутые сужающиеся «ленты» от макушки — по форме головы, чёлка вперёд."""
+    import random
+    rnd = random.Random(seed)
+    gold = math.pi * (3 - math.sqrt(5))
+    for i in range(n):
+        # равномерно по «шапочке» (спираль Фибоначчи)
+        t = (i + 0.5) / n
+        th0 = math.acos(1 - t * (1 - math.cos(1.15))) * 0.9
+        ph = i * gold + rnd.uniform(-0.15, 0.15)
+        front = math.cos(ph) > 0.55
+        pts = []
+        for k in range(6):
+            u = k / 5
+            if fringe and front:
+                # чёлка: вперёд и вниз на лоб, чуть вбок
+                th = th0 + u * (1.0 - th0) * 0.95
+                p2 = ph + u * 0.25 * math.sin(ph * 3)
+            else:
+                th = min(nape, th0 + u * length * (1.2 if math.cos(ph) < -0.3 else 1.0))
+                p2 = ph + u * 0.18 * math.sin(i)
+            lf = lift + 0.035 * math.sin(u * math.pi) + rnd.uniform(-0.01, 0.01)
+            pts.append(scalp(th, p2, lf))
+        w = width * rnd.uniform(0.8, 1.25)
+        rings = [(tuple(p), w * (1 - 0.75 * (k / 5)), w * 0.45 * (1 - 0.6 * (k / 5)), {'head': 1.0}) for k, p in enumerate(pts)]
+        lathe(objs, f'strand{i}', rings, M[mat], segs=6)
+
+
 def hair_short(objs, M):
     hair_shell(objs, M, cut=lambda x, y, z: (z < 0.045 and y < -0.04) or (z < -0.015 and y < 0.035) or z < -0.085 or (z < 0.0 and abs(x) > 0.085 and y < 0.06))
-    # чёлка и объём сверху — пряди
-    for i, (x, z, r) in enumerate([(-0.055, 0.06, 0.03), (-0.025, 0.072, 0.034), (0.008, 0.075, 0.035), (0.04, 0.068, 0.032), (0.065, 0.05, 0.026)]):
-        part(objs, 'sphere', f'fringe{i}', (r, r * 0.8, r * 0.75), (x, -0.088, HC + z), M['Hair'], 'head', rot=(0.5, 0, x * 3), segs=18, rings=10, smooth=True)
-    for i, (x, y, z) in enumerate([(-0.04, 0.0, 0.112), (0.03, 0.02, 0.118), (0.0, 0.06, 0.1), (-0.06, 0.05, 0.08), (0.065, 0.045, 0.08)]):
-        part(objs, 'sphere', f'tuft{i}', (0.042, 0.04, 0.03), (x, y, HC + z), M['Hair'], 'head', segs=18, rings=10, smooth=True)
+    # объёмные пряди поверх шапочки
+    hair_strands(objs, M, n=130, length=0.6, nape=1.75)
+
+
+def beard_strands(objs, M, mat, n=120, seed=5):
+    import random
+    rnd = random.Random(seed)
+    for i in range(n):
+        ph = rnd.uniform(-1.25, 1.25)
+        th = rnd.uniform(1.75, 2.35)
+        pts = []
+        for k in range(5):
+            u = k / 4
+            p = scalp(th + u * 0.3, ph * (1 - 0.35 * u), 1.1 + 0.12 * math.sin(u * math.pi * 0.8))
+            p.z -= u * 0.06
+            pts.append(p)
+        w = 0.011 * rnd.uniform(0.8, 1.2)
+        lathe(objs, f'beard{i}', [(tuple(p), w * (1 - 0.7 * k / 4), w * 0.6, {'head': 1.0}) for k, p in enumerate(pts)], M[mat], segs=6)
 
 
 def hair_beard(objs, M, mat='Hair'):
-    part(objs, 'sphere', 'beard', (0.088, 0.06, 0.075), (0, -0.07, HC - 0.075), M[mat], 'head', segs=24, rings=14, smooth=True)
+    part(objs, 'sphere', 'beard', (0.07, 0.045, 0.055), (0, -0.065, HC - 0.07), M[mat], 'head', segs=24, rings=14, smooth=True)
     for x in (1, -1):
         part(objs, 'sphere', 'mustache', (0.026, 0.012, 0.01), (0.017 * x, -0.112, HC - 0.046), M[mat], 'head', rot=(0, 0.3 * x, 0), segs=14, rings=8, smooth=True)
         part(objs, 'sphere', 'sideburn', (0.018, 0.04, 0.05), (0.088 * x, -0.02, HC - 0.03), M[mat], 'head', segs=14, rings=8, smooth=True)
@@ -353,8 +464,10 @@ def mats(extra=None):
 
 
 def finish(arm, groups, out, anim='human', monster_args=None):
-    for name, objs in groups.items():
-        if objs: bind(join(objs, name), arm)
+    joined = [join(objs, name) for name, objs in groups.items() if objs]
+    # мягкие тени: запекаем ambient occlusion в цвета вершин (глазницы, под носом, у шеи, под волосами, складки)
+    bake_ao(joined, floor=0.5, samples=96)
+    for o in joined: bind(o, arm)
     if anim == 'human': human_anims(arm)
     else:
         from monsters import animations
@@ -414,7 +527,8 @@ def build_wanderer():
     arms(body, M, skin='Coat', sleeve=None, bulk=1.15); hands(body, M); legs(body, M, 'Pants', bulk=1.05); sneakers(body, M, 'Shoes', 'Shoes', boots=True)
     # полы пальто до колен
     lathe(body, 'coatskirt', [((0, 0.004, z), rx, ry, blend('hips', 'spine', 0.0) if z > 0.85 else {'hips': 0.6, 'thigh.L': 0.2, 'thigh.R': 0.2}) for z, rx, ry in
-                              [(0.98, 0.16, 0.112), (0.86, 0.175, 0.125), (0.7, 0.2, 0.14), (0.52, 0.22, 0.155)]], M['Coat'], segs=28, cap0=False, cap1=False)
+                              [(0.98, 0.16, 0.112), (0.92, 0.168, 0.118), (0.86, 0.175, 0.125), (0.78, 0.188, 0.132), (0.7, 0.2, 0.14), (0.61, 0.21, 0.148), (0.52, 0.22, 0.155)]], M['Coat'], segs=40, cap0=False, cap1=False,
+                              shape=lambda i, a, c: 1 + drape(c.z, 0.95, 0.52, 0.06, a, 8))
     part(body, 'sphere', 'patch', (0.04, 0.01, 0.04), (0.08, -0.13, 0.75), M['Patch'], 'hips', segs=12, rings=6, smooth=True)
     lathe(body, 'scarf', [((0, 0.004, z), r, r * 0.9, {'chest': 0.5, 'neck': 0.5}) for z, r in ((1.33, 0.085), (1.37, 0.075), (1.4, 0.06))], M['Scarf'], segs=20)
     lathe(body, 'scarfend', [((0.04, -0.07, 1.36), 0.02, 0.012, {'chest': 1.0}), ((0.06, -0.12, 1.2), 0.025, 0.01, {'chest': 1.0})], M['Scarf'], segs=8)
@@ -422,7 +536,10 @@ def build_wanderer():
     head(hd, M, mouth_open=False, nose_k=1.35, brow='Beard')
     part(hd, 'sphere', 'rednose', (0.013, 0.012, 0.012), (0, -0.124, HC - 0.032), material('RedNose', hexc('#d07a6a'), 0.5), 'head', segs=12, rings=8, smooth=True)
     hair_beard(hd, M, 'Beard')
-    lathe(hd, 'beanie', [((0, 0.006, HC + z), r, r * 1.05, {'head': 1.0}) for z, r in ((0.03, 0.114), (0.07, 0.112), (0.11, 0.096), (0.145, 0.06))], M['Beanie'], segs=28, cap0=False)
+    beard_strands(hd, M, 'Beard')
+    hair_strands(hd, M, 'Beard', n=40, seed=8, fringe=False, length=0.35, nape=2.0, width=0.009)
+    lathe(hd, 'beanie', [((0, 0.006, HC + z), r, r * 1.05, {'head': 1.0}) for z, r in ((0.03, 0.114), (0.07, 0.113), (0.105, 0.102), (0.13, 0.082), (0.145, 0.055))], M['Beanie'], segs=32, cap0=False,
+          shape=lambda i, a, c: 1 + 0.025 * abs(math.sin(a * 14)))
     lathe(hd, 'beaniecuff', [((0, 0.006, HC + z), 0.12, 0.126, {'head': 1.0}) for z in (0.02, 0.05)], M['Beanie'], segs=28, cap0=False, cap1=False)
     finish(arm, {'Body': body, 'Head': hd}, 'wanderer')
 
@@ -442,19 +559,35 @@ def build_folk_girl():
     lathe(body, 'skirt', [((0, 0.004, z), rx, ry, w) for z, rx, ry, w in [
         (1.0, 0.135, 0.095, {'hips': 0.5, 'spine': 0.5}), (0.9, 0.17, 0.12, {'hips': 1.0}), (0.74, 0.21, 0.16, {'hips': 0.7, 'thigh.L': 0.15, 'thigh.R': 0.15}),
         (0.56, 0.245, 0.19, {'hips': 0.5, 'thigh.L': 0.25, 'thigh.R': 0.25}), (0.5, 0.25, 0.195, {'hips': 0.5, 'thigh.L': 0.25, 'thigh.R': 0.25})]],
-        M['Dress'], segs=32, cap0=False, cap1=False, mats=[M['Trim']], band=lambda i: 1 if i >= 3 else 0)
+        M['Dress'], segs=48, cap0=False, cap1=False, mats=[M['Trim']], band=lambda i: 1 if i >= 3 else 0, shape=lambda i, a, c: 1 + drape(c.z, 0.92, 0.5, 0.05, a, 11))
     for z in (1.12, 1.24):
         lathe(body, f'strap{z}', [((x * 0.075, -0.1, z), 0.008, 0.004, torso_w(z)) for x in (-1, 1)], M['Trim'], segs=6)
-    head(hd, M, iris='#3a6aa8', lashes=True, jaw=0.26)
+    head(hd, M, iris='#3a6aa8', lashes=True, jaw=0.26, mouth_open=False)
     # платок: оболочка вокруг головы + узел под подбородком
-    hair_shell(hd, M, 'Scarf', scale=(0.116, 0.124, 0.138), off=(0, 0.01, 0.006), cut=lambda x, y, z: (y < -0.055 and z > -0.07 and z < 0.075) or (y < -0.03 and z < -0.07), name='kerchief')
+    hair_shell(hd, M, 'Scarf', scale=(0.114, 0.122, 0.13), off=(0, 0.01, 0.0), cut=lambda x, y, z: (y < -0.055 and z > -0.07 and z < 0.075) or (y < -0.03 and z < -0.07), name='kerchief')
     part(hd, 'sphere', 'knot', (0.03, 0.025, 0.025), (0, -0.07, HC - 0.12), M['Scarf'], 'head', segs=14, rings=8, smooth=True)
-    for i in range(10):
-        a = i / 10 * math.pi * 2
-        part(hd, 'sphere', f'dot{i}', (0.008, 0.008, 0.008), (math.sin(a) * 0.12, math.cos(a) * 0.125 + 0.01, HC + 0.05 + (i % 3) * 0.03), M['Dots'], 'head', segs=8, rings=6, smooth=True)
-    for i, x in enumerate((-0.04, -0.015, 0.012, 0.038)):
-        part(hd, 'sphere', f'bang{i}', (0.022, 0.012, 0.016), (x, -0.104, HC + 0.064), M['Hair'], 'head', segs=12, rings=8, smooth=True)
-    lathe(hd, 'braid', [((0, 0.1, HC - 0.02), 0.026, 0.026, {'head': 1.0}), ((0, 0.12, HC - 0.12), 0.024, 0.024, {'head': 0.5, 'neck': 0.5}), ((0, 0.13, 1.24), 0.02, 0.02, {'chest': 1.0}), ((0, 0.13, 1.16), 0.012, 0.012, {'chest': 1.0})], M['Hair'], segs=12)
+    for i in range(26):
+        th, ph = 0.35 + (i % 4) * 0.33, i * 2.39
+        if math.cos(ph) > 0.4 and th > 0.6: continue
+        p = scalp(th, ph, 1.135)
+        part(hd, 'sphere', f'dot{i}', (0.007, 0.007, 0.0035), tuple(p), M['Dots'], 'head', rot=(th, 0, -ph), segs=10, rings=6, smooth=True)
+    # чёлка из-под платка — пряди
+    import random
+    rnd = random.Random(4)
+    for i in range(18):
+        ph = -0.55 + i * (1.1 / 17)
+        pts = [scalp(0.62 + u * 0.32, ph + rnd.uniform(-0.04, 0.04), 1.06 + 0.02 * math.sin(u * 3)) for u in (0, 0.33, 0.66, 1.0)]
+        lathe(hd, f'bang{i}', [(tuple(p), 0.008 * (1 - 0.6 * k / 3), 0.0035, {'head': 1.0}) for k, p in enumerate(pts)], M['Hair'], segs=6)
+    for j in range(3):
+        rings = []
+        for k in range(25):
+            u = k / 24
+            z = HC - 0.02 - u * 0.38
+            y = 0.1 + u * 0.03
+            ph = u * 14 + j * 2.09
+            w = {'head': 1.0} if z > HC - 0.1 else {'neck': 1.0} if z > 1.3 else {'chest': 1.0}
+            rings.append(((math.cos(ph) * 0.011, y + math.sin(ph) * 0.007, z), 0.013 * (1 - 0.45 * u), 0.011 * (1 - 0.45 * u), w))
+        lathe(hd, f'braid{j}', rings, M['Hair'], segs=8)
     part(hd, 'sphere', 'ribbon', (0.03, 0.012, 0.02), (0, 0.13, 1.17), M['Scarf'], 'chest', segs=12, rings=6, smooth=True)
     weapon(body, M, 'pan')
     finish(arm, {'Body': body, 'Head': hd}, 'folk_girl')
@@ -476,6 +609,15 @@ def build_bear():
         for i in (-1, 0, 1):
             part(body, 'cone', f'toeclaw{i}.{s}', (0.008, 0.008, 0.025), (LX * x + i * 0.025, -0.16, 0.03), M['Claw'], f'foot.{s}', rot=(math.radians(90), 0, 0), segs=8)
     weapon(body, M, 'log')
+    # пучки меха на груди, плечах и загривке
+    import random
+    rnd = random.Random(11)
+    for i in range(70):
+        z = rnd.uniform(1.0, 1.38); a = rnd.uniform(0, math.pi * 2)
+        r0 = 0.2
+        base = Vector((math.cos(a) * r0 * 1.0, math.sin(a) * r0 * 0.85, z))
+        tip = base + Vector((math.cos(a) * 0.03, math.sin(a) * 0.03, -0.035))
+        lathe(body, f'fur{i}', [(tuple(base), 0.016, 0.01, torso_w(z)), (tuple(tip), 0.003, 0.002, torso_w(z))], M['Fur'], segs=5)
     # голова медведя
     o = part(hd, 'sphere', 'skull', (0.13, 0.13, 0.12), (0, 0.0, HC), M['Fur'], 'head', segs=36, rings=22, smooth=True)
     part(hd, 'sphere', 'snout', (0.065, 0.085, 0.055), (0, -0.115, HC - 0.035), M['Snout'], 'head', segs=24, rings=14, smooth=True)
@@ -538,7 +680,8 @@ def build_jack():
     torso(body, M, 'Coat', bulk=1.05); pelvis(body, M, 'Coat'); neck(body, M)
     arms(body, M, skin='Coat', sleeve=None, bulk=1.1); hands(body, M, glove='Glove'); legs(body, M, 'Coat', bulk=0.95); sneakers(body, M, 'Hat', 'Hat', boots=True)
     lathe(body, 'cloak', [((0, 0.02 + (1.34 - z) * 0.05, z), rx, ry, {'chest': 0.7, 'spine': 0.3} if z > 1.0 else {'hips': 0.6, 'thigh.L': 0.2, 'thigh.R': 0.2}) for z, rx, ry in
-                          [(1.34, 0.2, 0.14), (1.2, 0.23, 0.17), (1.0, 0.25, 0.19), (0.75, 0.27, 0.21), (0.45, 0.29, 0.23)]], M['Coat'], segs=30, cap0=False, cap1=False)
+                          [(1.34, 0.2, 0.14), (1.2, 0.23, 0.17), (1.0, 0.25, 0.19), (0.75, 0.27, 0.21), (0.45, 0.29, 0.23)]], M['Coat'], segs=44, cap0=False, cap1=False,
+                          shape=lambda i, a, c: 1 + drape(c.z, 1.2, 0.45, 0.07, a, 9))
     lathe(body, 'scarf', [((0, 0.004, z), r, r * 0.92, {'chest': 0.5, 'neck': 0.5}) for z, r in ((1.33, 0.08), (1.37, 0.072), (1.41, 0.058))], M['Scarf'], segs=20)
     weapon(body, M, 'knife')
     head(hd, M, mouth_open=False, iris='#2a0a0a', jaw=0.3, brow='Hat')

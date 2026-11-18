@@ -121,12 +121,12 @@ def key(arm, frame, pose):
         pb.keyframe_insert('scale', frame=frame)
 
 def export(path):
-    bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', export_animations=True,
+    bpy.ops.export_scene.gltf(filepath=path, export_format='GLB', export_animations=True, export_vertex_color='ACTIVE',
                               export_animation_mode='ACTIONS', export_apply=True, export_yup=True,
                               export_force_sampling=True, export_frame_step=1)
 
 
-def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True, mats=None, band=None):
+def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True, mats=None, band=None, shape=None):
     """Гладкая «трубка» вдоль цепочки колец — без стыков между частями тела.
     rings: [((x, y, z), rx, ry, {кость: вес, ...}), ...]. Веса плавно смешиваются между костями,
     поэтому локти, колени и талия сгибаются мягко, без вмятин и щелей."""
@@ -150,7 +150,9 @@ def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True, mats=None, band
         ring = []
         for k in range(segs):
             ang = k / segs * math.pi * 2
-            ring.append(bm.verts.new(Vector(c) + u * (math.cos(ang) * rx) + v * (math.sin(ang) * ry)))
+            # shape(i, угол, точка) — множитель радиуса: складки ткани, мышцы
+            m = shape(i, ang, Vector(c)) if shape else 1.0
+            ring.append(bm.verts.new(Vector(c) + u * (math.cos(ang) * rx * m) + v * (math.sin(ang) * ry * m)))
         loops.append(ring)
     for i in range(len(loops) - 1):
         for k in range(segs):
@@ -229,3 +231,27 @@ def soften(o, levels=1):
     bpy.context.view_layer.objects.active = o
     bpy.ops.object.modifier_apply(modifier='sub')
     for p in o.data.polygons: p.use_smooth = True
+
+
+def bake_ao(objs, floor=0.5, samples=24):
+    """Запекает ambient occlusion в цвета вершин (мягкие тени в глазницах, под носом, у шеи, под волосами).
+    floor — насколько светлыми остаются самые тёмные места (0..1)."""
+    sc = bpy.context.scene
+    sc.render.engine = 'CYCLES'
+    sc.cycles.device = 'CPU'
+    sc.cycles.samples = samples
+    sc.render.bake.target = 'VERTEX_COLORS'
+    if not sc.world: sc.world = bpy.data.worlds.new('W')
+    sc.world.light_settings.distance = 0.06  # только ближние складки и впадины — без пятен от соседних частей тела
+    bpy.ops.object.select_all(action='DESELECT')
+    for o in objs:
+        if not o.data.color_attributes:
+            o.data.color_attributes.new('Col', 'BYTE_COLOR', 'CORNER')
+        o.select_set(True)
+    bpy.context.view_layer.objects.active = objs[0]
+    bpy.ops.object.bake(type='AO')
+    for o in objs:
+        for d in o.data.color_attributes[0].data:
+            ao = d.color[0]
+            k = floor + (1 - floor) * ao
+            d.color = (k, k, k, 1.0)

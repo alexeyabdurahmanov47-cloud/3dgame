@@ -7,7 +7,7 @@ import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Vector
-from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend
+from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend, bake_ao
 
 OUTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'models')
 os.makedirs(OUTDIR, exist_ok=True)
@@ -271,6 +271,7 @@ def build_teacher():
     for i, (x, z) in enumerate([(0.13, -0.05), (-0.12, -0.1), (0.1, -0.16)]):
         limb(head, f'strand{i}', (x, -0.02, HC + 0.06), (x * 1.2, -0.06, HC + z), 0.015, 0.004, M['Hair'], 'head', segs=4)
     headM = join(head, 'Head')
+    bake_ao([bodyM, headM], floor=0.45, samples=64)
     for m in (bodyM, headM): bind(m, arm)
     animations(arm, dict(hunch=0.25, tilt=0.35, jitter=0.25, limp=0.4, reach=1.25, height=P['head']))
     arm.animation_data.action = bpy.data.actions['Idle']
@@ -304,6 +305,7 @@ def build_shadow():
     for x in (1, -1):
         part(head, 'sphere', 'eye', (0.02, 0.008, 0.012), (0.05 * x, -0.142, HC + 0.03), M['Eye'], 'head', segs=8, rings=4, smooth=True)
     headM = join(head, 'Head')
+    bake_ao([bodyM, headM], floor=0.45, samples=64)
     for m in (bodyM, headM): bind(m, arm)
     animations(arm, dict(hunch=0.1, tilt=0.15, jitter=0.4, limp=0.0, reach=1.5, height=P['head']))
     arm.animation_data.action = bpy.data.actions['Idle']
@@ -356,6 +358,7 @@ def build_headmaster():
         part(head, 'cube', f'crack{i}', (0.005, 0.01, 0.07 - i * 0.01), (0.02 + i * 0.02, -0.225, HC + 0.12 - i * 0.04), M['Crack'], 'head', rot=(0, 0.5 - i * 0.4, 0))
     part(head, 'sphere', 'tear', (0.01, 0.008, 0.05), (-0.065, -0.226, HC - 0.02), M['Blood'], 'head', segs=6, rings=4, smooth=True)
     headM = join(head, 'Head')
+    bake_ao([bodyM, headM], floor=0.45, samples=64)
     for m in (bodyM, headM): bind(m, arm)
     animations(arm, dict(hunch=0.08, tilt=0.12, jitter=0.15, limp=0.0, reach=0.9, height=P['head']))
     arm.animation_data.action = bpy.data.actions['Idle']

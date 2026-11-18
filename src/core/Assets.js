@@ -9,6 +9,40 @@ const EXTRA = { teacher: 'models/teacher.glb', shadow: 'models/shadow.glb', head
   hero_web: 'models/hero_web.glb', wanderer: 'models/wanderer.glb', folk_girl: 'models/folk_girl.glb', bear: 'models/bear.glb', grin_cat: 'models/grin_cat.glb' };
 export const SPECIAL_MODELS = ['hero_web', 'wanderer', 'folk_girl', 'bear', 'grin_cat'];
 
+// Процедурная карта нормалей ткани (плетение + шум) — для одежды персонажей
+let fabricTex = null;
+function fabricNormal() {
+  if (fabricTex) return fabricTex;
+  const N = 256, hgt = new Float32Array(N * N);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const wx = Math.sin((x / N) * Math.PI * 2 * 24), wy = Math.sin((y / N) * Math.PI * 2 * 24);
+    const weave = ((Math.floor(x / (N / 48)) + Math.floor(y / (N / 48))) % 2 ? wx : wy) * 0.5;
+    hgt[y * N + x] = weave + (Math.random() - 0.5) * 0.35;
+  }
+  const c = document.createElement('canvas'); c.width = c.height = N;
+  const ctx = c.getContext('2d'); const img = ctx.createImageData(N, N);
+  const H = (x, y) => hgt[((y + N) % N) * N + ((x + N) % N)];
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const dx = (H(x + 1, y) - H(x - 1, y)) * 1.2, dy = (H(x, y + 1) - H(x, y - 1)) * 1.2;
+    const l = Math.hypot(dx, dy, 1), i = (y * N + x) * 4;
+    img.data[i] = (-dx / l * 0.5 + 0.5) * 255; img.data[i + 1] = (-dy / l * 0.5 + 0.5) * 255; img.data[i + 2] = (1 / l * 0.5 + 0.5) * 255; img.data[i + 3] = 255;
+  }
+  ctx.putImageData(img, 0, 0);
+  fabricTex = new THREE.CanvasTexture(c);
+  fabricTex.wrapS = fabricTex.wrapT = THREE.RepeatWrapping;
+  fabricTex.repeat.set(5, 5);
+  fabricTex.userData.shared = true;
+  return fabricTex;
+}
+const FABRIC = new Set(['Body', 'Pants', 'Coat', 'Dress', 'Suit', 'Suit2', 'Scarf', 'Beanie', 'Blouse', 'Patch', 'Hat']);
+export function decorate(g) {
+  g.scene.traverse((o) => {
+    if (!o.isMesh || !o.material) return;
+    const m = o.material;
+    if (FABRIC.has(m.name) && !m.normalMap && o.geometry.attributes.uv) { m.normalMap = fabricNormal(); m.normalScale.set(0.45, 0.45); m.needsUpdate = true; }
+  });
+}
+
 export const Assets = {
   gltf: {},
   async load(onProgress) {
@@ -18,7 +52,7 @@ export const Assets = {
     await Promise.all(names.map((n) => new Promise((res, rej) => {
       loader.load(FILES[n], (g) => {
         g.scene.traverse((o) => { if (o.geometry) o.geometry.userData.shared = true; if (o.material) o.material.userData.shared = true; });
-        this.gltf[n] = g; done++; onProgress && onProgress(done / names.length); res(); }, undefined, rej);
+        decorate(g); this.gltf[n] = g; done++; onProgress && onProgress(done / names.length); res(); }, undefined, rej);
     })));
   },
   async ensure(names) {
@@ -26,7 +60,7 @@ export const Assets = {
     await Promise.all(names.filter((n) => !this.gltf[n]).map((n) => new Promise((res, rej) => {
       loader.load(EXTRA[n], (g) => {
         g.scene.traverse((o) => { if (o.geometry) o.geometry.userData.shared = true; if (o.material) o.material.userData.shared = true; });
-        this.gltf[n] = g; res();
+        decorate(g); this.gltf[n] = g; res();
       }, undefined, rej);
     })));
   },

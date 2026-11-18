@@ -2,7 +2,7 @@
 import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
-from common import reset, material, hexc, part, join, armature, bind, new_action, key, export
+from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, bake_ao
 
 DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'models')
 os.makedirs(DIR, exist_ok=True)
@@ -48,7 +48,9 @@ def quadruped(name, fur, dark, size, ears_up):
     for k, (x, y) in legs.items():
         part(p, 'cyl', f'leg{k}', (0.045 * s, 0.045 * s, H - 0.03 * s), (x * s, y * s, (H - 0.03 * s) / 2 + 0.02), F, f'leg.{k}', segs=20, smooth=True)
         part(p, 'sphere', f'paw{k}', (0.05 * s, 0.065 * s, 0.03 * s), (x * s, y * s - 0.02 * s, 0.03), D if name == 'Dog' else W, f'leg.{k}', segs=16, rings=10, smooth=True)
-    bind(join(p, name + 'Mesh'), arm)
+    mesh_o = join(p, name + 'Mesh')
+    bake_ao([mesh_o], floor=0.5, samples=64)
+    bind(mesh_o, arm)
 
     def loop(an, frames, fn, step=2):
         new_action(arm, an)
