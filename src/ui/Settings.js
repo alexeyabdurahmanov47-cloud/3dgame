@@ -33,6 +33,7 @@ export function openSettings(game) {
     row('🔊 Громкость звуков', range('sfxVol', 0, 1, 0.05, () => { game.audio.apply(); game.audio.play('coin'); })),
     row('🖱️ Чувствительность мыши', range('sens', 0.3, 2.5, 0.1)),
     row('↕️ Инвертировать ось Y', toggle('invertY')),
+    row('🔒 Shift Lock по быстрому нажатию Shift', toggle('shiftLockKey')),
     row('🏷️ Метки над объектами', toggle('labels')),
     row('🖥️ Графика', seg('quality', [['low', 'Быстрая'], ['high', 'Красивая']], () => game.applyQuality())),
     row('⏱️ Длина урока (30 игровых мин.)', seg('lessonSeconds', [[180, '3 мин'], [300, '5 мин'], [600, '10 мин'], [1200, '20 мин']])),

@@ -33,7 +33,9 @@ export class ThirdPersonCamera {
       return;
     }
 
-    const tx = playerPos.x, ty = playerPos.y + 1.35, tz = playerPos.z;
+    // Shift Lock: камера смещается за правое плечо
+    this.side = damp(this.side || 0, this.shiftLock ? 0.85 : 0, 10, dt);
+    const tx = playerPos.x + Math.cos(this.yaw) * this.side, ty = playerPos.y + 1.35 + (this.shiftLock ? 0.15 : 0), tz = playerPos.z - Math.sin(this.yaw) * this.side;
     this.target.x = damp(this.target.x, tx, 20, dt);
     this.target.y = damp(this.target.y, ty, 10, dt);
     this.target.z = damp(this.target.z, tz, 20, dt);

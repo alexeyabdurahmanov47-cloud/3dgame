@@ -77,8 +77,10 @@ export class Game {
     this.marker.userData = { gem, ring };
 
     this.input.onLockChange = (locked) => {
-      if (!locked && this.state === 'play' && this.input.enabled && !this.paused) this.togglePause(true);
+      if (!locked && this.state === 'play' && this.input.enabled && !this.paused && !this.input.suppressPause) this.togglePause(true);
     };
+    this.input.onShiftTap = () => { if (this.save.settings.shiftLockKey !== false) this.setShiftLock(!this.shiftLock); };
+    this.shiftLock = false;
     addEventListener('keydown', (e) => {
       if (e.code === 'Escape') this.onEscape();
       if (e.code === 'KeyM' && this.state === 'play' && this.input.enabled) {
@@ -163,6 +165,27 @@ export class Game {
     this.refreshInput();
   }
 
+  // ---------- Shift Lock (как в Roblox) ----------
+  // Камера за правым плечом, курсор захвачен, персонаж всегда смотрит туда же, куда камера.
+  setShiftLock(on, quiet = false) {
+    if (this.state !== 'play' && on) return;
+    this.shiftLock = on;
+    this.cam.shiftLock = on;
+    this.player.shiftLock = on;
+    document.body.classList.toggle('shiftlock', on);
+    if (this.hud.slBtn) this.hud.slBtn.classList.toggle('on', on);
+    const I = this.input;
+    if (on && !I.isTouch && !I.locked && this.canvas.requestPointerLock) {
+      try { const p = this.canvas.requestPointerLock(); if (p && p.catch) p.catch(() => {}); } catch (_) { /* браузер может отказать */ }
+    }
+    if (!on && I.locked) {
+      I.suppressPause = true;
+      I.unlock();
+      setTimeout(() => (I.suppressPause = false), 400);
+    }
+    if (!quiet) this.ui.toast(on ? '🔒 Shift Lock включён — камера за плечом' : '🔓 Shift Lock выключен', '', 1600);
+  }
+
   // ---------- внешний вид игрока ----------
   applyLook() {
     const f = this.save.progress.flags;
@@ -185,7 +208,7 @@ export class Game {
     this.ui.dialog.show([
       { name: 'Мама', avatar: '👩', text: 'Доброе утро, солнышко! Пора вставать и собираться в школу!' },
       { name: 'Сова Соня', avatar: '🦉', text: 'Привет! Я Соня, твоя помощница. Я буду подсказывать, куда идти.' },
-      { name: 'Сова Соня', avatar: '🦉', text: this.input.isTouch ? 'Двигайся джойстиком слева, крути камеру пальцем справа, а кнопка ✋ — действие.' : 'Ходи на WASD, поворачивай камеру — зажми правую кнопку мыши и двигай мышь, Shift — бег, пробел — прыжок, E — действие, Esc — меню.' },
+      { name: 'Сова Соня', avatar: '🦉', text: this.input.isTouch ? 'Двигайся джойстиком слева, крути камеру пальцем справа, а кнопка ✋ — действие.' : 'Ходи на WASD, поворачивай камеру — зажми правую кнопку мыши и двигай мышь, Shift — бег (держать), быстрое нажатие Shift — Shift Lock (камера за плечом), пробел — прыжок, E — действие, Esc — меню.' },
       { name: 'Сова Соня', avatar: '🦉', text: 'Сверху — твоё задание и стрелка, указывающая на цель. Справа внизу — мини‑карта. Вперёд!' },
     ]);
   }
@@ -196,6 +219,7 @@ export class Game {
     this.pauseMenu.close();
     this.lesson.abort();
     if (this.horror.active) this.horror.end();
+    if (this.shiftLock) this.setShiftLock(false, true);
     this.ui.closeAllModals();
     if (this.ui.dialog.open) this.ui.dialog.close();
     if (this.scene) { this.scene.exit(); this.scene.dispose(); this.scene = null; }

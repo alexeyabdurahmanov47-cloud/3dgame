@@ -16,9 +16,19 @@ export class Input {
       if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
       if (!e.repeat) this.just.add(e.code);
       this.keys.add(e.code);
+      // Shift Lock: короткое нажатие Shift (без других клавиш) — переключатель; удержание — бег
+      if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && !e.repeat) this.shiftDown = { t: e.timeStamp, other: false };
+      else if (this.shiftDown) this.shiftDown.other = true;
       if (['Space', 'ArrowUp', 'ArrowDown'].includes(e.code)) e.preventDefault();
     });
-    addEventListener('keyup', (e) => this.keys.delete(e.code));
+    addEventListener('keyup', (e) => {
+      this.keys.delete(e.code);
+      if ((e.code === 'ShiftLeft' || e.code === 'ShiftRight') && this.shiftDown) {
+        const quick = e.timeStamp - this.shiftDown.t < 260 && !this.shiftDown.other;
+        this.shiftDown = null;
+        if (quick && this.enabled && this.onShiftTap) this.onShiftTap();
+      }
+    });
     addEventListener('blur', () => { this.keys.clear(); this.dragging = this.rightDrag = false; });
 
     // Правая кнопка мыши: зажми и двигай мышь — камера поворачивается (курсор не захватывается).

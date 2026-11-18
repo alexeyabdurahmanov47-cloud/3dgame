@@ -84,11 +84,12 @@ export class BaseScene {
       const d = new THREE.DirectionalLight('#ffe9cf', 2.1);
       d.position.set(...sunPos);
       d.castShadow = this.game.quality === 'high';
-      d.shadow.mapSize.set(2048, 2048);
+      d.shadow.mapSize.set(4096, 4096); // чёткие тени без «лесенки»
       const s = shadowSize;
       Object.assign(d.shadow.camera, { left: -s, right: s, top: s, bottom: -s, near: 1, far: 150 });
-      d.shadow.bias = -0.0006;
-      d.shadow.normalBias = 0.02;
+      // смещения против «теневой ряби» (shadow acne) на гладких поверхностях
+      d.shadow.bias = -0.0012;
+      d.shadow.normalBias = 0.1;
       this.scene.add(d, d.target);
       this.sun = d;
       this.sunOffset = new THREE.Vector3(...sunPos);

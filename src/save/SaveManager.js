@@ -31,6 +31,7 @@ export function defaultSave() {
       quality: 'high',
       lessonSeconds: CONFIG.lesson.realSeconds,
       labels: true,
+      shiftLockKey: true,
     },
     progress: newDayProgress(1),
     // хоррор-режим

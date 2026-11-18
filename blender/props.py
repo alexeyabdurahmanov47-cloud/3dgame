@@ -48,7 +48,7 @@ def prim(objs, kind, size, loc, mat, rot=(0, 0, 0), bevel=0.0, smooth=False, seg
     if kind == 'cube': bpy.ops.mesh.primitive_cube_add(size=1, location=loc, rotation=rot)
     elif kind == 'cyl': bpy.ops.mesh.primitive_cylinder_add(vertices=segs, radius=1, depth=1, location=loc, rotation=rot)
     elif kind == 'cone': bpy.ops.mesh.primitive_cone_add(vertices=segs, radius1=1, radius2=r2, depth=1, location=loc, rotation=rot)
-    elif kind == 'ico': bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1, location=loc, rotation=rot)
+    elif kind == 'ico': bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=3, radius=1, location=loc, rotation=rot)
     elif kind == 'sphere': bpy.ops.mesh.primitive_uv_sphere_add(segments=segs, ring_count=rings, radius=1, location=loc, rotation=rot)
     elif kind == 'torus': bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=r2 or 0.1, major_segments=segs, minor_segments=6, location=loc, rotation=rot)
     o = C.active_object
@@ -59,6 +59,11 @@ def prim(objs, kind, size, loc, mat, rot=(0, 0, 0), bevel=0.0, smooth=False, seg
         bpy.ops.object.modifier_apply(modifier='bev')
     o.data.materials.append(mat)
     for p in o.data.polygons: p.use_smooth = smooth
+    if smooth and kind in ('cyl', 'cone', 'torus', 'cube'):
+        # гладкие бока, но плоские торцы — без тёмных «ямочек» на крышках цилиндров
+        es = o.modifiers.new('es', 'EDGE_SPLIT'); es.split_angle = math.radians(48)
+        C.view_layer.objects.active = o
+        bpy.ops.object.modifier_apply(modifier='es')
     objs.append(o)
     return o
 
@@ -75,20 +80,20 @@ def finish(objs, name):
 
 # ---------- природа ----------
 p = []
-prim(p, 'cone', (0.2, 0.2, 1.5), (0, 0, 0.75), M['Bark'], segs=7, r2=0.12)
+prim(p, 'cone', (0.2, 0.2, 1.5), (0, 0, 0.75), M['Bark'], segs=14, smooth=True, r2=0.12)
 for (x, y, z, r) in [(0, 0, 2.15, 0.95), (0.45, 0.2, 1.75, 0.65), (-0.4, -0.25, 1.8, 0.6), (0.1, -0.35, 2.55, 0.55)]:
-    prim(p, 'ico', (r, r, r * 0.92), (x, y, z), M['Leaves'], rot=(x, y, z))
+    prim(p, 'ico', (r, r, r * 0.92), (x, y, z), M['Leaves'], rot=(x, y, z), smooth=True)
 finish(p, 'tree_round')
 
 p = []
-prim(p, 'cyl', (0.14, 0.14, 0.9), (0, 0, 0.45), M['Bark'], segs=7)
+prim(p, 'cyl', (0.14, 0.14, 0.9), (0, 0, 0.45), M['Bark'], segs=16, smooth=True)
 for i in range(4):
     prim(p, 'cone', (1.35 - i * 0.28, 1.35 - i * 0.28, 1.1), (0, 0, 1.25 + i * 0.62), M['Pine'], segs=8)
 finish(p, 'tree_pine')
 
 p = []
 for (x, y, z, r) in [(0, 0, 0.35, 0.55), (0.4, 0.1, 0.28, 0.4), (-0.35, -0.15, 0.3, 0.42), (0.05, -0.3, 0.25, 0.35)]:
-    prim(p, 'ico', (r, r, r * 0.8), (x, y, z), M['Leaves'], rot=(y, x, z))
+    prim(p, 'ico', (r, r, r * 0.8), (x, y, z), M['Leaves'], rot=(y, x, z), smooth=True)
 finish(p, 'bush')
 
 # ---------- улица ----------
@@ -104,21 +109,21 @@ for x in (-0.75, 0.75):
 finish(p, 'bench')
 
 p = []
-prim(p, 'cyl', (0.12, 0.12, 0.3), (0, 0, 0.15), M['Metal'], segs=8)
-prim(p, 'cyl', (0.06, 0.06, 3.4), (0, 0, 1.85), M['Metal'], segs=8)
+prim(p, 'cyl', (0.12, 0.12, 0.3), (0, 0, 0.15), M['Metal'], segs=16, smooth=True)
+prim(p, 'cyl', (0.06, 0.06, 3.4), (0, 0, 1.85), M['Metal'], segs=16, smooth=True)
 prim(p, 'torus', (0.1, 0.1, 0.1), (0, 0, 3.5), M['Metal'], segs=10, r2=0.25)
-prim(p, 'cyl', (0.17, 0.17, 0.08), (0, 0, 3.62), M['Metal'], segs=8)
-prim(p, 'sphere', (0.2, 0.2, 0.22), (0, 0, 3.42), M['Bulb'], segs=10, rings=6, smooth=True)
+prim(p, 'cyl', (0.17, 0.17, 0.08), (0, 0, 3.62), M['Metal'], segs=16, smooth=True)
+prim(p, 'sphere', (0.2, 0.2, 0.22), (0, 0, 3.42), M['Bulb'], segs=20, rings=12, smooth=True)
 prim(p, 'cone', (0.3, 0.3, 0.18), (0, 0, 3.72), M['Metal'], segs=8)
 finish(p, 'lamp')
 
 p = []
-prim(p, 'cyl', (3.2, 3.2, 0.6), (0, 0, 0.3), M['Stone'], segs=16)
-prim(p, 'cyl', (2.9, 2.9, 0.05), (0, 0, 0.6), M['Water'], segs=16)
-prim(p, 'cyl', (0.35, 0.35, 1.6), (0, 0, 1.2), M['Stone'], segs=10)
-prim(p, 'cyl', (1.1, 1.1, 0.2), (0, 0, 2.0), M['Stone'], segs=14)
-prim(p, 'cyl', (0.95, 0.95, 0.04), (0, 0, 2.11), M['Water'], segs=14)
-prim(p, 'sphere', (0.25, 0.25, 0.25), (0, 0, 2.35), M['Stone'], segs=10, rings=6, smooth=True)
+prim(p, 'cyl', (3.2, 3.2, 0.6), (0, 0, 0.3), M['Stone'], segs=32, smooth=True)
+prim(p, 'cyl', (2.9, 2.9, 0.05), (0, 0, 0.6), M['Water'], segs=32, smooth=True)
+prim(p, 'cyl', (0.35, 0.35, 1.6), (0, 0, 1.2), M['Stone'], segs=20, smooth=True)
+prim(p, 'cyl', (1.1, 1.1, 0.2), (0, 0, 2.0), M['Stone'], segs=28, smooth=True)
+prim(p, 'cyl', (0.95, 0.95, 0.04), (0, 0, 2.11), M['Water'], segs=28, smooth=True)
+prim(p, 'sphere', (0.25, 0.25, 0.25), (0, 0, 2.35), M['Stone'], segs=20, rings=12, smooth=True)
 finish(p, 'fountain')
 
 # ---------- машина (длина вдоль X, перед в +X) ----------
@@ -138,7 +143,7 @@ prim(p, 'cube', (0.04, 0.4, 0.12), (-2.05, 0, 0.66), M['Plate'])
 for x in (1.3, -1.3):
     for y in (0.86, -0.86):
         prim(p, 'cyl', (0.38, 0.38, 0.26), (x, y, 0.38), M['Tire'], rot=(math.pi / 2, 0, 0), segs=14, smooth=True)
-        prim(p, 'cyl', (0.2, 0.2, 0.28), (x, y, 0.38), M['Hub'], rot=(math.pi / 2, 0, 0), segs=10)
+        prim(p, 'cyl', (0.2, 0.2, 0.28), (x, y, 0.38), M['Hub'], rot=(math.pi / 2, 0, 0), segs=20, smooth=True)
 finish(p, 'car')
 
 # ---------- школьная мебель ----------
@@ -191,7 +196,7 @@ for x in (-0.68, 0.68):
     prim(p, 'cube', (1.3, 0.85, 0.16), (x, -0.08, 0.55), M['Fabric'], bevel=0.06)
 for x in (-1.35, 1.35):
     for y in (-0.45, 0.45):
-        prim(p, 'cyl', (0.05, 0.05, 0.1), (x, y, 0.05), M['Wood'], segs=6)
+        prim(p, 'cyl', (0.05, 0.05, 0.1), (x, y, 0.05), M['Wood'], segs=16, smooth=True)
 finish(p, 'sofa')
 
 p = []

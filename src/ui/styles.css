@@ -903,3 +903,11 @@ body.horror-on #labels .label3d { opacity: .8; }
 body.horror-on .tip .owl { background: #7a0a0a; }
 body.horror-on .tip .bubble { background: rgba(10, 4, 4, .9); box-shadow: 0 0 0 1px #4a1010; }
 body.horror-on .tip .bubble b { color: #ff8a7a; }
+/* Shift Lock */
+.crosshair { display: none; position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; margin: -11px; pointer-events: none; }
+.crosshair::before, .crosshair::after { content: ''; position: absolute; background: rgba(255, 255, 255, .9); box-shadow: 0 0 3px rgba(0, 0, 0, .8); }
+.crosshair::before { left: 10px; top: 2px; width: 2px; height: 18px; }
+.crosshair::after { top: 10px; left: 2px; height: 2px; width: 18px; }
+body.shiftlock .hud:not(.hidden) .crosshair { display: block; }
+.hud-tr .sl-btn { font-size: 17px; }
+.hud-tr .sl-btn.on { background: var(--purple) !important; color: #fff; }

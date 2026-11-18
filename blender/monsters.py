@@ -7,7 +7,7 @@ import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
 from mathutils import Vector
-from common import reset, material, hexc, part, join, armature, bind, new_action, key, export
+from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend
 
 OUTDIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'models')
 os.makedirs(OUTDIR, exist_ok=True)
@@ -64,19 +64,47 @@ def rig(S):
 
 
 def body_parts(objs, S, P, M, torso='Cloth', legs='Cloth', skin='Skin', shoes='Shoes'):
+    """Тело монстра — сплошные гладкие поверхности с плавными весами (без швов на суставах)."""
     sx, hx = S['shoulder'], S['hipw']
-    # таз и туловище
-    part(objs, 'cyl', 'pelvis', (hx * 1.7, S['depth'] * 0.9, 0.12), (0, 0, P['hip'] + 0.02), M[legs], 'hips', segs=10, smooth=True)
-    limb(objs, 'belly', (0, 0, P['hip'] + 0.05), (0, 0, P['chest']), S['waist'], S['chestR'] * 0.9, M[torso], 'spine', segs=10)
-    limb(objs, 'ribs', (0, 0, P['chest']), (0, 0, P['neck'] - 0.02), S['chestR'] * 0.95, S['chestR'] * 0.8, M[torso], 'chest', segs=10)
-    part(objs, 'sphere', 'shoulders', (sx * 1.05, S['depth'] * 0.85, 0.08), (0, 0, P['sh'] + 0.01), M[torso], 'chest', segs=12, rings=6, smooth=True)
-    limb(objs, 'neckm', (0, 0, P['neck'] - 0.03), (0, 0, P['head'] + 0.04), S['neckR'], S['neckR'] * 0.9, M[skin], 'neck', segs=8)
+    hip, chest, neck, head = P['hip'], P['chest'], P['neck'], P['head']
+    smid = hip + S['spine'] * 0.45
+    def tw(z):
+        if z < smid - 0.04: return {'hips': 1.0}
+        if z < chest: return blend('hips', 'spine', (z - smid + 0.04) / (chest - smid + 0.04))
+        if z < chest + 0.08: return blend('spine', 'chest', (z - chest) / 0.08)
+        if z < neck - 0.02: return {'chest': 1.0}
+        return blend('chest', 'neck', (z - neck + 0.02) / 0.06)
+    lerp = lambda a, b, t: a + (b - a) * t
+    # таз
+    lathe(objs, 'pelvis', [((0, 0, z), rx, ry, {'hips': 1.0}) for z, rx, ry in [
+        (hip - 0.1, hx * 1.1, S['depth'] * 0.55), (hip - 0.04, hx * 1.75, S['depth'] * 0.85), (hip + 0.06, hx * 1.85, S['depth'] * 0.9), (hip + 0.12, S['waist'] * 1.05, S['depth'] * 0.85)]], M[legs], segs=20)
+    # торс: талия → грудь → плечи → шея
+    rings = []
+    z0, z1 = hip + 0.06, neck + 0.03
+    for k in range(9):
+        f = k / 8
+        z = lerp(z0, z1, f)
+        if f < 0.6: rx = lerp(S['waist'], S['chestR'], f / 0.6)
+        elif f < 0.85: rx = lerp(S['chestR'], sx * 0.98, (f - 0.6) / 0.25)
+        else: rx = lerp(sx * 0.98, S['neckR'] * 1.6, (f - 0.85) / 0.15)
+        ry = min(rx, S['depth'] * (0.8 + 0.25 * (1 - abs(f - 0.6))))
+        rings.append(((0, 0, z), rx, ry, tw(z)))
+    lathe(objs, 'torso', rings, M[torso], segs=22)
+    lathe(objs, 'neckm', [((0, 0, z), S['neckR'], S['neckR'] * 0.95, w) for z, w in [
+        (neck - 0.03, {'chest': 1.0}), (neck + 0.04, blend('chest', 'neck', 0.6)), (head, {'neck': 1.0}), (head + 0.05, blend('neck', 'head', 0.7))]], M[skin], segs=12)
     for s, x in (('L', 1), ('R', -1)):
-        limb(objs, f'uarm.{s}', (sx * x, 0, P['sh']), (sx * x * 1.04, 0, P['el']), S['armR'], S['armR'] * 0.85, M[torso], f'upperarm.{s}')
-        limb(objs, f'farm.{s}', (sx * x * 1.04, 0, P['el']), (sx * x * 1.06, 0, P['wr']), S['armR'] * 0.85, S['armR'] * 0.6, M[S.get('farmMat', torso)], f'forearm.{s}')
-        limb(objs, f'thigh.{s}', (hx * x, 0, P['hip']), (hx * x, 0, P['kn']), S['legR'], S['legR'] * 0.8, M[legs], f'thigh.{s}')
-        limb(objs, f'shin.{s}', (hx * x, 0, P['kn']), (hx * x, 0, 0.1), S['legR'] * 0.8, S['legR'] * 0.6, M[legs], f'shin.{s}')
-        part(objs, 'cube', f'shoe.{s}', (S['legR'] * 1.7, 0.3, 0.1), (hx * x, -0.06, 0.05), M[shoes], f'foot.{s}', bevel=0.03)
+        ua, fa, th, sh = f'upperarm.{s}', f'forearm.{s}', f'thigh.{s}', f'shin.{s}'
+        A, E, W = (sx * x, 0, P['sh']), (sx * x * 1.04, 0, P['el']), (sx * x * 1.06, 0, P['wr'])
+        pt = lambda a, b, t: tuple(a[i] + (b[i] - a[i]) * t for i in range(3))
+        arm_rings = [(pt(A, E, t), S['armR'] * (1.05 - 0.1 * t), S['armR'] * (1.0 - 0.1 * t), {ua: 1.0} if t < 0.75 else blend(ua, fa, (t - 0.75) / 0.5)) for t in (0, 0.3, 0.6, 0.85)]
+        arm_rings += [(pt(E, W, t), S['armR'] * (0.9 - 0.3 * t), S['armR'] * (0.85 - 0.3 * t), blend(ua, fa, 0.5 + t * 2) if t < 0.25 else {fa: 1.0}) for t in (0.1, 0.4, 0.75, 1.0)]
+        fm = S.get('farmMat', torso)
+        lathe(objs, f'arm.{s}', arm_rings, M[torso if fm == torso else fm], segs=14)
+        Hh, K, F = (hx * x, 0, hip + 0.02), (hx * x, 0, P['kn']), (hx * x, 0, 0.1)
+        leg_rings = [(pt(Hh, K, t), S['legR'] * (1.0 - 0.15 * t), S['legR'] * (0.95 - 0.15 * t), {th: 1.0} if t < 0.75 else blend(th, sh, (t - 0.75) / 0.5)) for t in (0, 0.35, 0.7, 0.9)]
+        leg_rings += [(pt(K, F, t), S['legR'] * (0.82 - 0.25 * t), S['legR'] * (0.78 - 0.25 * t), blend(th, sh, 0.5 + t * 2) if t < 0.25 else {sh: 1.0}) for t in (0.1, 0.45, 0.8, 1.0)]
+        lathe(objs, f'leg.{s}', leg_rings, M[legs], segs=14, cap0=False)
+        part(objs, 'sphere', f'shoe.{s}', (S['legR'] * 0.95, 0.16, 0.06), (hx * x, -0.06, 0.06), M[shoes], f'foot.{s}', segs=16, rings=10, smooth=True)
 
 
 def claws(objs, S, P, M, mat, n=4, length=0.16, r=0.012):

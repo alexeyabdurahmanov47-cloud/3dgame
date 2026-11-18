@@ -21,7 +21,7 @@ export function mat(color, opts = {}) {
       ? new THREE.MeshBasicMaterial({ color, transparent: !!transparent, opacity: opacity ?? 1, side: side ?? THREE.FrontSide })
       : new THREE.MeshStandardMaterial({
           color,
-          flatShading: true,
+          flatShading: false, // гладкое затенение — без гранёных «ямочек» на круглых формах
           roughness: 0.82,
           metalness: 0,
           emissive: emissive || 0x000000,

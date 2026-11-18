@@ -5,7 +5,7 @@
 import sys, os, math
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bpy
-from common import reset, material, hexc, part, join, armature, bind, new_action, key, export
+from common import reset, material, hexc, part, join, armature, bind, new_action, key, export, lathe, blend, soften
 
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'public', 'models', 'character.glb')
 reset()
@@ -43,45 +43,64 @@ for s, x in (('L', 1), ('R', -1)):
 arm = armature('Rig', bones)
 
 # ---------- тело ----------
+# Торс, руки и ноги — сплошные гладкие поверхности (lathe) с плавным смешиванием весов костей:
+# никаких стыков, вмятин и «ямочек» на талии, плечах, локтях и коленях.
 body = []
-part(body, 'cube', 'pelvis', (0.36, 0.24, 0.18), (0, 0, 0.62), M['Pants'], 'hips', bevel=0.04)
-part(body, 'cyl', 'belly', (0.225, 0.2, 0.20), (0, 0, 0.80), M['Body'], 'spine', segs=12, smooth=True)
-part(body, 'cyl', 'chest', (0.25, 0.215, 0.24), (0, 0, 1.0), M['Body'], 'chest', segs=12, smooth=True)
-part(body, 'sphere', 'shoulders', (0.27, 0.2, 0.07), (0, 0, 1.11), M['Body'], 'chest', segs=12, rings=6, smooth=True)
-part(body, 'cyl', 'neck', (0.07, 0.07, 0.1), (0, 0, 1.17), M['Skin'], 'neck', segs=8, smooth=True)
+def torso_w(z):
+    if z < 0.72: return {'hips': 1.0}
+    if z < 0.9: return blend('hips', 'spine', (z - 0.72) / 0.18)
+    if z < 1.02: return blend('spine', 'chest', (z - 0.9) / 0.12)
+    if z < 1.13: return {'chest': 1.0}
+    return blend('chest', 'neck', (z - 1.13) / 0.05)
+# брюки (таз)
+lathe(body, 'pelvis', [((0, 0.01, z), rx, ry, {'hips': 1.0}) for z, rx, ry in [
+    (0.5, 0.12, 0.1), (0.54, 0.18, 0.135), (0.6, 0.198, 0.15), (0.67, 0.2, 0.155), (0.72, 0.195, 0.152)]], M['Pants'], segs=22)
+# рубашка/кофта: от пояса до шеи
+lathe(body, 'torso', [((0, 0, z), rx, ry, torso_w(z)) for z, rx, ry in [
+    (0.64, 0.205, 0.16), (0.7, 0.212, 0.165), (0.78, 0.218, 0.168), (0.88, 0.228, 0.172), (0.97, 0.245, 0.18),
+    (1.04, 0.258, 0.184), (1.09, 0.25, 0.178), (1.125, 0.2, 0.15), (1.15, 0.12, 0.095), (1.165, 0.075, 0.065)]], M['Body'], segs=24, cap0=False)
+# шея
+lathe(body, 'neck', [((0, 0, z), 0.062, 0.058, w) for z, w in [
+    (1.12, {'chest': 1.0}), (1.17, blend('chest', 'neck', 0.6)), (1.22, {'neck': 1.0}), (1.27, blend('neck', 'head', 0.7))]], M['Skin'], segs=14)
 for s, x in (('L', 1), ('R', -1)):
-    part(body, 'sphere', f'shoulder.{s}', (0.075, 0.075, 0.075), (0.30 * x, 0, 1.07), M['Body'], f'upperarm.{s}', segs=8, rings=6, smooth=True)
-    part(body, 'cyl', f'uarm.{s}', (0.062, 0.062, 0.24), (0.31 * x, 0, 0.97), M['Body'], f'upperarm.{s}', segs=8, smooth=True)
-    part(body, 'cyl', f'farm.{s}', (0.056, 0.056, 0.21), (0.325 * x, 0, 0.76), M['Body'], f'forearm.{s}', segs=8, smooth=True)
-    part(body, 'cyl', f'cuff.{s}', (0.06, 0.06, 0.03), (0.33 * x, 0, 0.665), M['Body'], f'forearm.{s}', segs=8)
-    part(body, 'sphere', f'hand.{s}', (0.065, 0.055, 0.075), (0.33 * x, 0, 0.6), M['Skin'], f'hand.{s}', segs=8, rings=6, smooth=True)
-    part(body, 'sphere', f'thumb.{s}', (0.025, 0.025, 0.035), (0.33 * x, -0.045, 0.62), M['Skin'], f'hand.{s}', segs=6, rings=4, smooth=True)
-    part(body, 'cyl', f'thigh.{s}', (0.088, 0.088, 0.27), (0.11 * x, 0, 0.45), M['Pants'], f'thigh.{s}', segs=8, smooth=True)
-    part(body, 'cyl', f'shin.{s}', (0.078, 0.078, 0.25), (0.11 * x, 0, 0.195), M['Pants'], f'shin.{s}', segs=8, smooth=True)
-    part(body, 'cube', f'shoe.{s}', (0.15, 0.27, 0.1), (0.11 * x, -0.045, 0.05), M['Shoes'], f'foot.{s}', bevel=0.035)
-    part(body, 'cube', f'sole.{s}', (0.155, 0.275, 0.025), (0.11 * x, -0.045, 0.0125), M['Pants'], f'foot.{s}', bevel=0.008)
+    ua, fa, hd = f'upperarm.{s}', f'forearm.{s}', f'hand.{s}'
+    # рукав: плечо → локоть → запястье, локоть сгибается плавно
+    lathe(body, f'arm.{s}', [((px * x, 0, pz), r, r * 0.95, w) for px, pz, r, w in [
+        (0.27, 1.1, 0.074, {ua: 0.7, 'chest': 0.3}), (0.288, 1.02, 0.07, {ua: 1.0}), (0.302, 0.94, 0.064, {ua: 1.0}),
+        (0.314, 0.88, 0.06, blend(ua, fa, 0.35)), (0.32, 0.86, 0.058, blend(ua, fa, 0.6)), (0.324, 0.82, 0.056, {fa: 1.0}),
+        (0.33, 0.74, 0.053, {fa: 1.0}), (0.332, 0.675, 0.05, {fa: 1.0})]], M['Body'], segs=16)
+    # ладонь и большой палец (гладкие)
+    o = part(body, 'sphere', f'hand.{s}', (0.056, 0.048, 0.072), (0.332 * x, 0, 0.61), M['Skin'], hd, segs=14, rings=10, smooth=True)
+    o = part(body, 'sphere', f'thumb.{s}', (0.022, 0.022, 0.034), (0.33 * x, -0.042, 0.628), M['Skin'], hd, segs=10, rings=6, smooth=True)
+    th, sh = f'thigh.{s}', f'shin.{s}'
+    # штанина: бедро → колено → голень
+    lathe(body, f'leg.{s}', [((0.11 * x, 0.005, z), r, r * 0.95, w) for z, r, w in [
+        (0.66, 0.092, {th: 1.0}), (0.56, 0.09, {th: 1.0}), (0.46, 0.083, {th: 1.0}), (0.37, 0.076, blend(th, sh, 0.25)),
+        (0.32, 0.073, blend(th, sh, 0.55)), (0.27, 0.07, blend(th, sh, 0.85)), (0.2, 0.065, {sh: 1.0}), (0.12, 0.06, {sh: 1.0}), (0.085, 0.058, {sh: 1.0})]], M['Pants'], segs=16, cap0=False)
+    # ботинок: гладкий, с подошвой
+    o = part(body, 'sphere', f'shoe.{s}', (0.075, 0.15, 0.06), (0.11 * x, -0.05, 0.06), M['Shoes'], f'foot.{s}', segs=18, rings=10, smooth=True)
+    part(body, 'cube', f'sole.{s}', (0.15, 0.29, 0.03), (0.11 * x, -0.05, 0.015), M['Shoes'], f'foot.{s}', bevel=0.012)
 bodyM = join(body, 'Body')
 
 # ---------- голова ----------
 HC = 1.49  # центр головы
 head = []
-part(head, 'sphere', 'skull', (0.3, 0.29, 0.3), (0, 0, HC), M['Skin'], 'head', segs=20, rings=12, smooth=True)
+part(head, 'sphere', 'skull', (0.3, 0.29, 0.3), (0, 0, HC), M['Skin'], 'head', segs=36, rings=20, smooth=True)
 for x in (1, -1):
-    part(head, 'sphere', 'ear', (0.05, 0.035, 0.07), (0.295 * x, 0.0, HC), M['Skin'], 'head', segs=8, rings=6, smooth=True)
-    part(head, 'sphere', 'cheek', (0.05, 0.015, 0.03), (0.165 * x, -0.255, HC - 0.07), M['Cheek'], 'head', segs=8, rings=4, smooth=True)
+    part(head, 'sphere', 'ear', (0.05, 0.035, 0.07), (0.295 * x, 0.0, HC), M['Skin'], 'head', segs=14, rings=10, smooth=True)
 headM = join(head, 'Head')
 
 face = []
 for x in (1, -1):
-    part(face, 'sphere', 'eye', (0.042, 0.03, 0.055), (0.1 * x, -0.262, HC + 0.03), M['Eye'], 'head', segs=10, rings=8, smooth=True)
-    part(face, 'sphere', 'eyehl', (0.014, 0.01, 0.014), (0.1 * x + 0.014, -0.285, HC + 0.05), M['EyeHL'], 'head', segs=6, rings=4, smooth=True)
+    part(face, 'sphere', 'eye', (0.042, 0.03, 0.055), (0.1 * x, -0.262, HC + 0.03), M['Eye'], 'head', segs=16, rings=12, smooth=True)
+    part(face, 'sphere', 'eyehl', (0.014, 0.01, 0.014), (0.1 * x + 0.014, -0.285, HC + 0.05), M['EyeHL'], 'head', segs=10, rings=6, smooth=True)
     part(face, 'cube', 'brow', (0.07, 0.015, 0.016), (0.1 * x, -0.27, HC + 0.105), M['Hair'], 'head', rot=(0, 0.12 * x, 0))
 part(face, 'cube', 'mouth', (0.085, 0.02, 0.022), (0, -0.282, HC - 0.1), M['Mouth'], 'head', bevel=0.008)
-part(face, 'sphere', 'nose', (0.03, 0.025, 0.025), (0, -0.295, HC - 0.03), M['Skin'], 'head', segs=8, rings=4, smooth=True)
+part(face, 'sphere', 'nose', (0.03, 0.025, 0.025), (0, -0.295, HC - 0.03), M['Skin'], 'head', segs=14, rings=8, smooth=True)
 faceM = join(face, 'Face')
 
 hair = []
-o = part(hair, 'sphere', 'cap', (0.335, 0.335, 0.33), (0, 0.012, HC + 0.035), M['Hair'], 'head', segs=20, rings=12, smooth=True)
+o = part(hair, 'sphere', 'cap', (0.335, 0.335, 0.33), (0, 0.012, HC + 0.035), M['Hair'], 'head', segs=36, rings=20, smooth=True)
 # срезаем переднюю нижнюю часть шапки волос — открываем лицо
 import bmesh
 bm = bmesh.new(); bm.from_mesh(o.data)
@@ -89,8 +108,8 @@ W = lambda v: o.matrix_world @ v.co  # мировые координаты ве�
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if (W(v).z < HC + 0.1 and W(v).y < -0.16) or (W(v).z < HC - 0.06 and W(v).y < 0.0) or (W(v).z < HC - 0.16 and W(v).y < 0.14)], context='VERTS')
 bm.to_mesh(o.data); bm.free()
 for i, x in enumerate((-0.17, -0.06, 0.06, 0.17)):
-    part(hair, 'sphere', f'tuft{i}', (0.085, 0.07, 0.07), (x, -0.255 + abs(x) * 0.25, HC + 0.17 - abs(x) * 0.15), M['Hair'], 'head', segs=10, rings=6, smooth=True)
-part(hair, 'sphere', 'back', (0.31, 0.2, 0.26), (0, 0.13, HC - 0.04), M['Hair'], 'head', segs=14, rings=8, smooth=True)
+    part(hair, 'sphere', f'tuft{i}', (0.085, 0.07, 0.07), (x, -0.255 + abs(x) * 0.25, HC + 0.17 - abs(x) * 0.15), M['Hair'], 'head', segs=16, rings=10, smooth=True)
+part(hair, 'sphere', 'back', (0.31, 0.2, 0.26), (0, 0.13, HC - 0.04), M['Hair'], 'head', segs=24, rings=14, smooth=True)
 hairM = join(hair, 'Hair')
 
 for m in (bodyM, headM, faceM, hairM):

@@ -49,8 +49,10 @@ export class Player {
     if (l > 0.01) {
       wx /= l;
       wz /= l;
-      this.facing = angleDamp(this.facing, Math.atan2(wx, wz), 14, dt);
+      if (!this.shiftLock) this.facing = angleDamp(this.facing, Math.atan2(wx, wz), 14, dt);
     } else { wx = 0; wz = 0; }
+    // Shift Lock: персонаж всегда повёрнут туда, куда смотрит камера (движение — стрейфом)
+    if (this.shiftLock) this.facing = angleDamp(this.facing, camYaw + Math.PI, 22, dt);
     this.mvx = damp(this.mvx || 0, wx * target, 12, dt);
     this.mvz = damp(this.mvz || 0, wz * target, 12, dt);
     this.speed = Math.hypot(this.mvx, this.mvz);
