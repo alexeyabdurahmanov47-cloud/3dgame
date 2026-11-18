@@ -137,6 +137,14 @@ export class HorrorFX {
 
 // процедурные лица для скримеров (SVG)
 function faceSVG(kind) {
+  if (kind === 'jack') {
+    return `<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice"><rect width="400" height="400" fill="#050404"/>
+      <rect x="110" y="10" width="180" height="150" fill="#0b0a0c"/><rect x="50" y="150" width="300" height="22" fill="#0b0a0c"/><rect x="110" y="132" width="180" height="16" fill="#5a0a0a"/>
+      <ellipse cx="200" cy="270" rx="120" ry="140" fill="#cfc6ba"/><rect x="80" y="172" width="240" height="70" fill="#0b0a0c" opacity=".85"/>
+      <circle cx="155" cy="225" r="10" fill="#ff3020"/><circle cx="245" cy="225" r="10" fill="#ff3020"/>
+      <path d="M140 320 Q200 345 260 320" stroke="#140c0c" stroke-width="8" fill="none"/><path d="M150 305 Q200 290 250 305" stroke="#0b0a0c" stroke-width="14" fill="none"/>
+      <rect x="60" y="360" width="280" height="40" fill="#5a0a0a"/></svg>`;
+  }
   if (kind === 'shadow') {
     return `<svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice"><rect width="400" height="400" fill="#000"/>
       <ellipse cx="200" cy="210" rx="150" ry="190" fill="#050507"/>

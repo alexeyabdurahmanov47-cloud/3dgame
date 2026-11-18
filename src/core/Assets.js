@@ -5,7 +5,9 @@ import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 // Модели, созданные в Blender 5.2 (скрипты в папке blender/) и экспортированные в public/models/*.glb
 const FILES = { character: 'models/character.glb', dog: 'models/dog.glb', cat: 'models/cat.glb', props: 'models/props.glb' };
 // Модели хоррор-режима — загружаются только при его запуске
-const EXTRA = { teacher: 'models/teacher.glb', shadow: 'models/shadow.glb', headmaster: 'models/headmaster.glb' };
+const EXTRA = { teacher: 'models/teacher.glb', shadow: 'models/shadow.glb', headmaster: 'models/headmaster.glb', jack: 'models/jack.glb',
+  hero_web: 'models/hero_web.glb', wanderer: 'models/wanderer.glb', folk_girl: 'models/folk_girl.glb', bear: 'models/bear.glb', grin_cat: 'models/grin_cat.glb' };
+export const SPECIAL_MODELS = ['hero_web', 'wanderer', 'folk_girl', 'bear', 'grin_cat'];
 
 export const Assets = {
   gltf: {},

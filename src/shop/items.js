@@ -34,6 +34,17 @@ export const ITEMS = [
     body: '#44bd32', pants: '#44bd32', shoes: '#2f7d22', hair: '#44bd32', skinTone: '#ffd3b0', shape: 'normal', extra: 'dino' },
   { id: 'skin_robot', slot: 'skin', name: 'Робот', icon: '🤖', price: 250, desc: 'Бип-буп! Квадратная голова и антенна.',
     body: '#95a5a6', pants: '#7f8c8d', shoes: '#34495e', hair: '#95a5a6', skinTone: '#bdc3c7', shape: 'robot' },
+  // особые персонажи — свои модели из Blender (blender/humans.py) и своё оружие (F)
+  { id: 'skin_web', slot: 'skin', name: 'Паутинник', icon: '🕸️', price: 350, model: 'hero_web', weapon: 'web', desc: 'Герой в тёмном костюме. Оружие — стрелялки паутины: опутывает цель издалека.',
+    body: '#2a1745', pants: '#101014', shoes: '#101014', hair: '#101014', skinTone: '#f2c6a4', shape: 'normal' },
+  { id: 'skin_wanderer', slot: 'skin', name: 'Бродяга Михалыч', icon: '🧔', price: 300, model: 'wanderer', weapon: 'staff', desc: 'Добрый странник в пальто и шапке. Оружие — дорожный посох.',
+    body: '#5a4632', pants: '#2b3a5a', shoes: '#2a2a2e', hair: '#b8b0a4', skinTone: '#e8b896', shape: 'normal' },
+  { id: 'skin_folk', slot: 'skin', name: 'Маруся', icon: '👧', price: 280, model: 'folk_girl', weapon: 'pan', scale: 0.86, desc: 'Бойкая девочка в сарафане и платке. Оружие — чугунная сковородка.',
+    body: '#2f7a52', pants: '#2f7a52', shoes: '#8a2a1e', hair: '#d9a94e', skinTone: '#f6d2b8', shape: 'normal' },
+  { id: 'skin_bear', slot: 'skin', name: 'Михайло Потапыч', icon: '🐻', price: 400, model: 'bear', weapon: 'log', scale: 1.08, desc: 'Медведь на задних лапах. Оружие — бревно и рёв, оглушающий всех вокруг.',
+    body: '#6b4426', pants: '#6b4426', shoes: '#6b4426', hair: '#6b4426', skinTone: '#6b4426', shape: 'normal' },
+  { id: 'skin_grincat', slot: 'skin', name: 'Улыбчивый кот', icon: '😼', price: 450, model: 'grin_cat', weapon: 'mallet', scale: 1.12, desc: 'Высокий полосатый кот с жуткой улыбкой. Оружие — мультяшный молот.',
+    body: '#5b3a8a', pants: '#5b3a8a', shoes: '#f4f4f0', hair: '#5b3a8a', skinTone: '#5b3a8a', shape: 'normal' },
   { id: 'skin_mini', slot: 'skin', name: 'Малыш', icon: '🐣', price: 90, desc: 'Маленький, но очень умный.',
     body: '#feca57', pants: '#48dbfb', shoes: '#ff6b6b', hair: '#ff9f43', skinTone: '#ffe0c4', shape: 'mini' },
 

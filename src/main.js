@@ -9,6 +9,13 @@ Assets.load((p) => { const b = document.getElementById('boot-bar'); if (b) b.sty
     ui.innerHTML = '';
     const { Game } = await import('./core/Game.js');
     window.game = new Game();
+    // особые персонажи догружаются в фоне, затем пересобираем внешний вид
+    const { SPECIAL_MODELS } = await import('./core/Assets.js');
+    Assets.ensure(SPECIAL_MODELS).then(() => {
+      const g = window.game;
+      g.menuScene.refreshLook();
+      if (g.state === 'play') g.applyLook();
+    }).catch((e) => console.warn('special models', e));
   })
   .catch((e) => {
     console.error(e);

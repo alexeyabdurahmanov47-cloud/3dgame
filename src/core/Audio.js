@@ -156,6 +156,25 @@ export class AudioSys {
       case 'page':
         this.noise(0.15, { vol: 0.08, freq: 3000, q: 0.6, type: 'highpass' });
         break;
+      case 'web':
+        this.noise(0.25, { vol: 0.2, freq: 3500, q: 1.5 });
+        this.tone(900, 0.2, { type: 'sine', vol: 0.06, slide: -600 });
+        break;
+      case 'swing':
+        this.noise(0.25, { vol: 0.22, freq: 700, q: 0.8 });
+        break;
+      case 'bong':
+        this.noise(0.15, { vol: 0.15, freq: 900, q: 0.8 });
+        [523, 790, 1210].forEach((f, i) => this.tone(f, 0.8, { type: 'sine', vol: 0.1 - i * 0.025, delay: 0.18 }));
+        break;
+      case 'roar':
+        this.noise(0.9, { vol: 0.35, freq: 220, q: 0.6, type: 'lowpass' });
+        [82, 87, 123].forEach((f) => this.tone(f, 0.8, { type: 'sawtooth', vol: 0.08, slide: -20 }));
+        break;
+      case 'boing':
+        this.noise(0.15, { vol: 0.15, freq: 600, q: 0.8 });
+        this.tone(220, 0.5, { type: 'triangle', vol: 0.15, slide: 500, delay: 0.2 });
+        break;
       case 'tick':
         this.tone(1500, 0.03, { type: 'square', vol: 0.03 });
         break;

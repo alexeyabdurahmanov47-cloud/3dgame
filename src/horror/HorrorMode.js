@@ -5,7 +5,7 @@ import { DIFFICULTIES, diffById } from './config.js';
 import { MISSIONS, missionById } from './missions.js';
 import { PUZZLES, PUZZLE_TITLES, DOCS } from './puzzles.js';
 import { ROOMS, roomById } from './HorrorScene.js';
-import { Teacher, Shadow, Headmaster, Silhouette } from './monsters.js';
+import { Teacher, Shadow, Headmaster, Silhouette, Jack } from './monsters.js';
 import { HorrorAudio } from './audio.js';
 import { HorrorFX } from './fx.js';
 import { bloodText } from './decals.js';
@@ -13,7 +13,7 @@ import { openHorrorMenu } from './HorrorMenu.js';
 
 const ITEM_NAMES = {
   fragment: 'Осколок кода', fuse: 'Предохранитель', keypart: 'Клочок ключа', doc: 'Страница дневника', key: 'Ключ', gear: 'Деталь звонка',
-  reagent: 'Реактив', page: 'Страница с условиями', battery: 'Батарейка', medkit: 'Аптечка', exam: 'Экзаменационный лист',
+  reagent: 'Реактив', page: 'Страница с условиями', letter: 'Письмо «Из Ада»', battery: 'Батарейка', medkit: 'Аптечка', exam: 'Экзаменационный лист',
 };
 const SCARY = ['Я ВИЖУ ТЕБЯ', 'ОБЕРНИСЬ', 'ТЫ НЕ ВЫУЧИЛ УРОК', 'ОНА УЖЕ ЗА ДВЕРЬЮ', 'НЕ ДЫШИ', 'ЗВОНОК БЫЛ ДЛЯ ТЕБЯ', 'ЗДЕСЬ НИКОГО НЕТ… КРОМЕ НАС', 'ТЫ ОСТАНЕШЬСЯ ПОСЛЕ УРОКОВ', 'КТО-ТО СТОИТ ПОЗАДИ'];
 const VKEYS = ['DARK', 'FEAR', 'GRIM', 'HUSH', 'BELL', 'TOMB', 'VOID'];
@@ -42,7 +42,7 @@ export class HorrorMode {
     g.ui.toastBox.innerHTML = '';
     if (g.ui.tipEl) { g.ui.tipEl.remove(); g.ui.tipEl = null; }
     g.ui.loading.show('🩸 Загрузка кошмара…');
-    await Assets.ensure(['teacher', 'shadow', 'headmaster']);
+    await Assets.ensure(['teacher', 'shadow', 'headmaster', 'jack']);
     try { await document.fonts.load('64px "Rubik Wet Paint"'); } catch (_) { /* шрифт не обязателен */ }
     g.save.log('horror', `Хоррор-режим: «${this.mission.name}» (${this.diff.name})`);
     g.state = 'loading';
@@ -108,7 +108,7 @@ export class HorrorMode {
     // монстры
     const nT = d.teachers + (m.extraTeachers || 0);
     const tSpots = [[36, 0], [-36, -13.5], [10, 7], [-20, 0]];
-    for (let i = 0; i < nT; i++) { const t = new Teacher(this, ...tSpots[i % tSpots.length]); this.teachers.push(t); this.monsters.push(t); }
+    for (let i = 0; i < nT; i++) { const t = m.jack ? new Jack(this, ...tSpots[i % tSpots.length]) : new Teacher(this, ...tSpots[i % tSpots.length]); this.teachers.push(t); this.monsters.push(t); }
     const nS = d.shadows + (m.extraShadows || 0);
     for (let i = 0; i < nS; i++) { const s = new Shadow(this); s.timer = 15 + i * 12 + Math.random() * 15; this.shadows.push(s); this.monsters.push(s); }
     if (m.boss) { this.boss = new Headmaster(this, 64, 0); this.monsters.push(this.boss); } else this.boss = null;
@@ -323,7 +323,7 @@ export class HorrorMode {
     if (this.hp <= 0) {
       this.hp = 0;
       this.dead = true;
-      this.fail(src && src.kind === 'headmaster' ? 'Директор поставил тебе «неуд». Навсегда.' : src && src.kind === 'shadow' ? 'Тень забрала тебя в темноту.' : 'Учитель поймал тебя в коридоре.');
+      this.fail(src && src.kind === 'headmaster' ? 'Директор поставил тебе «неуд». Навсегда.' : src && src.kind === 'shadow' ? 'Тень забрала тебя в темноту.' : src && src.kind === 'jack' ? 'Свист оборвался прямо у тебя за спиной.' : 'Учитель поймал тебя в коридоре.');
     }
   }
 
@@ -464,6 +464,7 @@ export class HorrorMode {
     }
     if (it.kind === 'doc') this.showDoc(it.idx);
     if (it.kind === 'page') g.ui.toast('📄 Страница с условиями расписания найдена', '', 3000);
+    if (it.kind === 'letter') g.ui.toast(`✉️ «${['Дорогой босс…', 'Я не остановлюсь…', 'Из Ада.', 'Поймайте меня, если сможете.', 'Скоро снова услышите обо мне.', 'Ваш покорный слуга, Джек.'][it.idx % 6]}»`, 'warn', 4000);
     if (st && st.t === 'collect' && st.item === it.kind) {
       this.collected++;
       if (this.collected >= st.n) this.nextStage();

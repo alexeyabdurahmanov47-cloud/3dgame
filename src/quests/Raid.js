@@ -286,7 +286,7 @@ export class Raid {
   attack() {
     const g = this.game;
     const gear = this.bestGear();
-    if (!gear) { g.ui.toast('🧰 Сначала получи снаряжение в ящике полиции у лифта!', 'warn'); return; }
+    if (!gear) { if (!g.player.model.weapon) g.ui.toast('🧰 Сначала получи снаряжение в ящике полиции у лифта!', 'warn'); return; }
     if (this.cool > 0) return;
     this.cool = gear.cd;
     const p = g.player.pos;

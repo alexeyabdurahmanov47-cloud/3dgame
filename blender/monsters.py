@@ -362,7 +362,8 @@ def build_headmaster():
     export(os.path.join(OUTDIR, 'headmaster.glb'))
 
 
-which = sys.argv[1:] or ['teacher', 'shadow', 'headmaster']
-for w in which:
+if __name__ == '__main__':
+  which = sys.argv[1:] or ['teacher', 'shadow', 'headmaster']
+  for w in which:
     {'teacher': build_teacher, 'shadow': build_shadow, 'headmaster': build_headmaster}[w]()
     print('EXPORTED', w)

@@ -126,7 +126,7 @@ def export(path):
                               export_force_sampling=True, export_frame_step=1)
 
 
-def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True):
+def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True, mats=None, band=None):
     """Гладкая «трубка» вдоль цепочки колец — без стыков между частями тела.
     rings: [((x, y, z), rx, ry, {кость: вес, ...}), ...]. Веса плавно смешиваются между костями,
     поэтому локти, колени и талия сгибаются мягко, без вмятин и щелей."""
@@ -167,10 +167,29 @@ def lathe(objs, name, rings, mat, segs=18, cap0=True, cap1=True):
         pv = bm.verts.new(p1)
         for k in range(segs): bm.faces.new((loops[n][k], loops[n][(k + 1) % segs], pv))
         caps.append((pv, n))
+    # UV-развёртка (для текстуры ткани) и полосы материалов
+    uv = bm.loops.layers.uv.new('UVMap')
+    nR = max(1, len(loops) - 1)
+    for f in bm.faces:
+        for l in f.loops:
+            idx = l.vert.index if hasattr(l.vert, 'index') else 0
+    bm.verts.index_update()
+    for f in bm.faces:
+        for l in f.loops:
+            vi = l.vert.index
+            if vi < len(loops) * segs:
+                i, k = divmod(vi, segs)
+                l[uv].uv = (k / segs * 2, i / nR * 2)
+            else:
+                l[uv].uv = (0.5, 0.0 if vi == len(loops) * segs else 1.0)
+        if band:
+            ring_i = min(l.vert.index // segs for l in f.loops if l.vert.index < len(loops) * segs) if any(l.vert.index < len(loops) * segs for l in f.loops) else 0
+            f.material_index = band(ring_i)
     bm.normal_update()
     bm.to_mesh(me)
     bm.free()
     me.materials.append(mat)
+    for extra in (mats or []): me.materials.append(extra)
     for p in me.polygons: p.use_smooth = True
     # нормали наружу
     bpy.context.view_layer.objects.active = o

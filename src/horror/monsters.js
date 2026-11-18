@@ -64,8 +64,8 @@ class MonsterBase {
 
 // ======================================================================= УЧИТЕЛЬ
 export class Teacher extends MonsterBase {
-  constructor(mode, x, z) {
-    super(mode, 'teacher');
+  constructor(mode, x, z, kind = 'teacher') {
+    super(mode, kind);
     this.pos.set(x, 0, z);
     this.state = 'patrol';
     this.aware = 0;
@@ -219,7 +219,7 @@ export class Teacher extends MonsterBase {
         if (seen) this.lostT = 0; else this.lostT += dt;
         if (this.lostT > this.diff.memory) { this.setState('search'); this.aware = 0.5; this.goTo(this.lastSeen.x, this.lastSeen.z); break; }
         this.play('Chase', { ts: 0.9 + 0.25 * sp });
-        const speed = (4.1 + M.diffIndex * 0.25) * sp * (M.boss ? 0.9 : 1);
+        const speed = (4.1 + M.diffIndex * 0.25) * sp * (M.boss ? 0.9 : 1) * (this.kind === 'jack' ? 1.12 : 1);
         if (seen && M.scene.los(this.pos.x, 1.2, this.pos.z, p.x, 1.2, p.z)) {
           this.path = [];
           this.stepTo(p.x, p.z, speed, dt);
@@ -235,7 +235,7 @@ export class Teacher extends MonsterBase {
         this.face(p.x, p.z, dt, 12);
         if (!this.attackHit && this.stateT > 0.3) {
           this.attackHit = true;
-          if (this.distToPlayer() < 2 && !M.hidden) M.damage(32 * this.diff.damage, this);
+          if (this.distToPlayer() < 2 && !M.hidden) M.damage((this.kind === 'jack' ? 38 : 32) * this.diff.damage, this);
         }
         if (this.stateT > 0.85) { this.setState('stunned'); this.play('Idle'); }
         break;
@@ -263,10 +263,10 @@ export class Teacher extends MonsterBase {
       default: break;
     }
     // шаги
-    if (this.stepAcc > (this.state === 'chase' ? 1.1 : 0.8)) { this.stepAcc = 0; M.audio.at('mstep', this.pos, { heavy: this.state === 'chase' }); }
-    // учитель бормочет, когда рядом
+    // Джек ступает тихо и насвистывает; учитель бормочет
+    if (this.stepAcc > (this.state === 'chase' ? 1.1 : 0.8)) { this.stepAcc = 0; if (this.kind !== 'jack' || this.state === 'chase') M.audio.at('mstep', this.pos, { heavy: this.state === 'chase' }); }
     this.mumbleT = (this.mumbleT || 3) - dt;
-    if (this.mumbleT <= 0 && d < 14) { this.mumbleT = 4 + Math.random() * 6; M.audio.at('mumble', this.pos); }
+    if (this.mumbleT <= 0 && d < 18) { this.mumbleT = 4 + Math.random() * 6; M.audio.at(this.kind === 'jack' ? 'whistle' : 'mumble', this.pos); }
   }
 
   // засада за дверью кабинета
@@ -547,4 +547,10 @@ export class Silhouette extends MonsterBase {
       if (this.eye && M.diffIndex < 4) { const k = lit ? 1 : 0; this.eye.emissive.setRGB(k * 0.9, k * 0.9, k); this.eye.color.set(lit ? '#ffffff' : '#111111'); }
     }
   }
+}
+
+// ======================================================================= ДЖЕК ПОТРОШИТЕЛЬ
+// Тот же разум, что у Учителя, но быстрее в погоне, тише шагает и насвистывает в темноте.
+export class Jack extends Teacher {
+  constructor(mode, x, z) { super(mode, x, z, 'jack'); }
 }

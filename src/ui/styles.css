@@ -911,3 +911,10 @@ body.horror-on .tip .bubble b { color: #ff8a7a; }
 body.shiftlock .hud:not(.hidden) .crosshair { display: block; }
 .hud-tr .sl-btn { font-size: 17px; }
 .hud-tr .sl-btn.on { background: var(--purple) !important; color: #fff; }
+/* оружие особых персонажей */
+.weapon-chip { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; background: var(--glass); color: #fff; border: 0; border-radius: 10px; padding: 7px 12px; font: 600 14px var(--font); backdrop-filter: blur(8px); cursor: pointer; pointer-events: auto; }
+.weapon-chip .ic { font-size: 22px; }
+.weapon-chip .cd { width: 90px; height: 4px; background: rgba(255, 255, 255, .15); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+.weapon-chip .cd > div { height: 100%; background: var(--yellow); }
+.weapon-chip .key { background: #fff; color: #111; border-radius: 5px; padding: 0 7px; font-weight: 800; }
+body.horror-on .weapon-chip { background: rgba(10, 4, 4, .8); bottom: 84px; }

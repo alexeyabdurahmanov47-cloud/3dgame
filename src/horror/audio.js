@@ -140,6 +140,7 @@ export class HorrorAudio {
       case 'battery': T(500, 0.08, { type: 'square', vol: 0.05 }); T(800, 0.1, { type: 'square', vol: 0.05, delay: 0.08 }); break;
       case 'click': T(1200, 0.02, { type: 'square', vol: 0.06 }); break;
       case 'bellBroken': [523, 554, 740].forEach((f, i) => T(f, 1.4, { type: 'square', vol: 0.05, delay: i * 0.02, slide: -60 })); break;
+      case 'whistle': [0, 3, 7, 5, 3].forEach((n, i) => T(988 * Math.pow(2, n / 12), 0.28, { type: 'sine', vol: 0.05, delay: i * 0.3, slide: -20 })); break;
       case 'note': break;
       default: break;
     }

@@ -29,6 +29,7 @@ import { SchoolScene } from '../scenes/SchoolScene.js';
 import { fmtTime } from '../ui/dom.js';
 import { HorrorScene } from '../horror/HorrorScene.js';
 import { HorrorMode } from '../horror/HorrorMode.js';
+import { Weapons } from '../player/Weapons.js';
 
 const SCENES = { home: HomeScene, hallway: HallwayScene, elevator: ElevatorScene, street: StreetScene, school: SchoolScene, horror: HorrorScene };
 const TITLES = { horror: '🩸 Заброшенная школа', home: '🏠 Дом', hallway: '🚪 Подъезд', elevator: '🛗 Лифт', street: '🌳 Дорога в школу', school: '🏫 Школа' };
@@ -60,6 +61,7 @@ export class Game {
     this.horror = new HorrorMode(this);
     this.player = new Player(this);
     this.hud = new HUD(this);
+    this.weapons = new Weapons(this);
     this.labels = new Labels(this);
     this.achievements = new Achievements(this);
     this.lesson = new LessonUI(this);
@@ -357,6 +359,7 @@ export class Game {
       this.player.update(dt, this.input, this.cam.yaw, s.world);
       s.update(dt);
       this.updateInteraction();
+      this.weapons.update(dt);
       if (hz) this.horror.update(dt);
       else this.raid.update(dt);
       this.lesson.update(dt);
